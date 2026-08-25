@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nokia 1280 Launcher — Web</title>
+<style>
+  :root{
+    --scale: 6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    min-height:100vh;
+    background:radial-gradient(circle at 50% 0%, #2b2f36 0%, #14161a 55%, #0b0c0e 100%);
+    color:#c9d1d9;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",sans-serif;
+    display:flex; flex-direction:column; align-items:center;
+    gap:22px; padding:34px 16px 60px;
+  }
+
+  h1{font-size:17px;font-weight:600;letter-spacing:.04em;color:#e6edf3}
+  .sub{font-size:12.5px;color:#8b949e;text-align:center;line-height:1.7;max-width:640px}
+
+  /* ---------- 機身 ---------- */
+  .phone{
+    --w: calc(96px * var(--scale) + 66px);  /* 機身 22*2 + 螢幕框 11*2 */
+    width:var(--w);
+    background:linear-gradient(168deg,#2f6d9e 0%,#1d4a72 42%,#15364f 100%);
+    border-radius:26px;
+    padding:18px 22px 20px;
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.09) inset,
+      0 2px 0 rgba(255,255,255,.18) inset,
+      0 26px 60px -12px rgba(0,0,0,.75),
+      0 8px 20px rgba(0,0,0,.5);
+    user-select:none;
+  }
+  .brandbar{
+    display:flex;align-items:center;justify-content:center;
+    height:26px;margin-bottom:10px;
+  }
+  .brandbar span{
+    font:600 13px/1 "Helvetica Neue",Arial,sans-serif;
+    letter-spacing:.34em; color:#dfeaf3; opacity:.85; text-indent:.34em;
+  }
+  .earpiece{
+    width:52px;height:6px;border-radius:4px;margin:0 auto 8px;
+    background:linear-gradient(#0d1c28,#0a141c);
+    box-shadow:0 1px 0 rgba(255,255,255,.14);
+  }
+
+  /* ---------- 螢幕 ---------- */
+  .bezel{
+    position:relative;
+    padding:11px;
+    border-radius:10px;
+    background:linear-gradient(#0c1319,#0a0f14);
+    box-shadow:0 2px 6px rgba(0,0,0,.55) inset, 0 1px 0 rgba(255,255,255,.12);
+  }
+  .screenwrap{position:relative;line-height:0;border-radius:2px;overflow:hidden}
+  canvas#lcd{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
+  /* LCD 像素格線 */
+  .lcdgrid{
+    position:absolute;inset:0;pointer-events:none;
+    background:
+      repeating-linear-gradient(to right, rgba(0,0,0,.07) 0 1px, transparent 1px calc(var(--scale) * 1px)),
+      repeating-linear-gradient(to bottom, rgba(0,0,0,.07) 0 1px, transparent 1px calc(var(--scale) * 1px));
+    mix-blend-mode:multiply; opacity:.6;
+  }
+  .glass{
+    position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(150deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,.05) 26%,transparent 46%);
+  }
+  .bezel.lit{box-shadow:0 2px 6px rgba(0,0,0,.55) inset,0 1px 0 rgba(255,255,255,.12),0 0 26px -4px rgba(190,255,170,.28)}
+
+  /* ---------- 鍵盤 ---------- */
+  .keys{margin-top:16px;display:flex;flex-direction:column;gap:7px}
+  .row{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .key{
+    position:relative;
+    border:0; cursor:pointer;
+    border-radius:9px;
+    padding:6px 4px 5px;
+    background:linear-gradient(#eef2f5,#c3ccd4);
+    color:#1b2733;
+    box-shadow:0 2px 0 #7d8994, 0 3px 5px rgba(0,0,0,.35);
+    transition:transform .04s, box-shadow .04s, filter .12s;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:34px;
+  }
+  .key:active,.key.down{transform:translateY(2px);box-shadow:0 0 0 #7d8994,0 1px 3px rgba(0,0,0,.4)}
+  .key .num{font:600 15px/1 "Helvetica Neue",Arial,sans-serif}
+  .key .abc{font:500 8px/1 Arial,sans-serif;letter-spacing:.09em;color:#5a6773;margin-top:3px;height:8px}
+  .key.soft{background:linear-gradient(#5a6674,#39434f);color:#e9eef3;box-shadow:0 2px 0 #222a33,0 3px 5px rgba(0,0,0,.4);min-height:30px;font:600 10px/1 Arial;border-radius:8px}
+  .key.nav{background:linear-gradient(#5a6674,#39434f);color:#e9eef3;box-shadow:0 2px 0 #222a33,0 3px 5px rgba(0,0,0,.4);min-height:30px;font-size:12px}
+  .key.ok{background:linear-gradient(#6d7a89,#414c59);font:600 10px/1 Arial;color:#fff}
+  .key.call{background:linear-gradient(#63c26a,#2f8b3d);color:#fff;box-shadow:0 2px 0 #1e5c28,0 3px 5px rgba(0,0,0,.4);min-height:30px}
+  .key.end{background:linear-gradient(#e2685f,#a8322a);color:#fff;box-shadow:0 2px 0 #6f1d17,0 3px 5px rgba(0,0,0,.4);min-height:30px}
+  .navpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:2px}
+
+  /* ---------- 說明 ---------- */
+  .hint{
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+    gap:8px 22px; max-width:660px; width:100%;
+    font-size:12px;color:#8b949e;
+  }
+  .hint div{display:flex;gap:8px;align-items:baseline}
+  kbd{
+    background:#21262d;border:1px solid #30363d;border-bottom-width:2px;
+    border-radius:5px;padding:1px 6px;font:11px/1.6 ui-monospace,Menlo,monospace;color:#c9d1d9;
+    white-space:nowrap;
+  }
+  .foot{font-size:11.5px;color:#6e7681;text-align:center;line-height:1.8}
+  a{color:#58a6ff}
+</style>
+</head>
+<body>
+
+<h1>Nokia 1280 Launcher · 網頁版</h1>
+<p class="sub">96×68 單色 LCD 模擬 · 逐像素二值化渲染 · 原生 JS，零依賴、可離線<br>用滑鼠點鍵盤，或直接用實體鍵盤操作</p>
+
+<div class="phone" id="phone">
+  <div class="earpiece"></div>
+  <div class="brandbar"><span>NOKIA</span></div>
+
+  <div class="bezel" id="bezel">
+    <div class="screenwrap">
+      <canvas id="lcd"></canvas>
+      <div class="lcdgrid"></div>
+      <div class="glass"></div>
+    </div>
+  </div>
+
+  <div class="keys">
+    <div class="row">
+      <button class="key soft" data-k="soft1">左軟鍵</button>
+      <button class="key nav" data-k="up">▲</button>
+      <button class="key soft" data-k="soft2">右軟鍵</button>
+    </div>
+    <div class="row">
+      <button class="key nav" data-k="left">◀</button>
+      <button class="key nav ok" data-k="ok">OK</button>
+      <button class="key nav" data-k="right">▶</button>
+    </div>
+    <div class="row">
+      <button class="key call" data-k="call">通話</button>
+      <button class="key nav" data-k="down">▼</button>
+      <button class="key end" data-k="end">結束</button>
+    </div>
+
+    <div class="row" style="margin-top:6px">
+      <button class="key" data-k="1"><span class="num">1</span><span class="abc">&nbsp;</span></button>
+      <button class="key" data-k="2"><span class="num">2</span><span class="abc">ABC</span></button>
+      <button class="key" data-k="3"><span class="num">3</span><span class="abc">DEF</span></button>
+    </div>
+    <div class="row">
+      <button class="key" data-k="4"><span class="num">4</span><span class="abc">GHI</span></button>
+      <button class="key" data-k="5"><span class="num">5</span><span class="abc">JKL</span></button>
+      <button class="key" data-k="6"><span class="num">6</span><span class="abc">MNO</span></button>
+    </div>
+    <div class="row">
+      <button class="key" data-k="7"><span class="num">7</span><span class="abc">PQRS</span></button>
+      <button class="key" data-k="8"><span class="num">8</span><span class="abc">TUV</span></button>
+      <button class="key" data-k="9"><span class="num">9</span><span class="abc">WXYZ</span></button>
+    </div>
+    <div class="row">
+      <button class="key" data-k="*"><span class="num">✱</span><span class="abc">+</span></button>
+      <button class="key" data-k="0"><span class="num">0</span><span class="abc">SPACE</span></button>
+      <button class="key" data-k="#"><span class="num">#</span><span class="abc">abc</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="hint">
+  <div><kbd>↑ ↓ ← →</kbd><span>導覽</span></div>
+  <div><kbd>Enter</kbd><span>OK / 選擇</span></div>
+  <div><kbd>Backspace</kbd><span>清除 / 返回</span></div>
+  <div><kbd>Z</kbd> <kbd>X</kbd><span>左 / 右軟鍵</span></div>
+  <div><kbd>C</kbd> <kbd>E</kbd><span>通話 / 結束鍵</span></div>
+  <div><kbd>0-9 * #</kbd><span>數字鍵（多次點按輸入）</span></div>
+</div>
+
+<p class="foot">
+  長按紅色結束鍵約 1 秒可關機；關機後按任意鍵開機。<br>
+  選單：Messages · Contacts · Call log · Games (Snake) · Clock · Calculator · Torch · Settings
+</p>
+
+<script>
+(function () {
+'use strict';
+
+/* =========================================================================
+ * 1. LCD 引擎 —— 96×68 單色螢幕
+ *    所有繪製都畫進離屏 canvas，present() 時逐像素二值化再放大輸出
+ * ========================================================================= */
+const W = 96, H = 68;
+let SCALE = 6;
+
+const off  = document.createElement('canvas');
+off.width = W; off.height = H;
+const g = off.getContext('2d', { willReadFrequently: true });
+
+const out  = document.createElement('canvas');
+out.width = W; out.height = H;
+const gOut = out.getContext('2d');
+const imgOut = gOut.createImageData(W, H);
+
+const lcd  = document.getElementById('lcd');
+const vctx = lcd.getContext('2d');
+const bezel = document.getElementById('bezel');
+
+const THEMES = [
+  { name: 'Classic',  paper: [154, 170, 130], ink: [24, 33, 18] },
+  { name: 'Blue LED', paper: [126, 178, 205], ink: [8, 32, 48] },
+  { name: 'White',    paper: [222, 226, 214], ink: [16, 16, 16] },
+  { name: 'Amber',    paper: [205, 168, 96],  ink: [40, 24, 4] }
+];
+const OFF_PAPER = [46, 52, 44];
+
+function applyScale() {
+  lcd.width  = W * SCALE;
+  lcd.height = H * SCALE;
+  document.documentElement.style.setProperty('--scale', SCALE);
+  vctx.imageSmoothingEnabled = false;
+}
+applyScale();
+
+/* =========================================================================
+ * 1b. 內建 5×7 點陣字型
+ *     系統字型在 8px 二值化後會糊掉，所以整套字自己定義：
+ *     每列格式 = 字元 + ':' + 7 列 × 5 欄的 0/1（1 = 亮點）
+ * ========================================================================= */
+const FONT_DATA = [
+' :00000:00000:00000:00000:00000:00000:00000',
+'!:00100:00100:00100:00100:00100:00000:00100',
+'":01010:01010:00000:00000:00000:00000:00000',
+'#:01010:01010:11111:01010:11111:01010:01010',
+'$:00100:01111:10100:01110:00101:11110:00100',
+'%:11000:11001:00010:00100:01000:10011:00011',
+'&:01100:10010:10100:01000:10101:10010:01101',
+"':00100:00100:00000:00000:00000:00000:00000",
+'(:00010:00100:01000:01000:01000:00100:00010',
+'):01000:00100:00010:00010:00010:00100:01000',
+'*:00000:00100:10101:01110:10101:00100:00000',
+'+:00000:00100:00100:11111:00100:00100:00000',
+',:00000:00000:00000:00000:00110:00110:01000',
+'-:00000:00000:00000:11111:00000:00000:00000',
+'.:00000:00000:00000:00000:00000:00110:00110',
+'/:00001:00010:00010:00100:01000:01000:10000',
+'0:01110:10001:10001:10001:10001:10001:01110',
+'1:00100:01100:00100:00100:00100:00100:01110',
+'2:01110:10001:00001:00010:00100:01000:11111',
+'3:11111:00010:00100:00010:00001:10001:01110',
+'4:00010:00110:01010:10010:11111:00010:00010',
+'5:11111:10000:11110:00001:00001:10001:01110',
+'6:00110:01000:10000:11110:10001:10001:01110',
+'7:11111:00001:00010:00100:01000:01000:01000',
+'8:01110:10001:10001:01110:10001:10001:01110',
+'9:01110:10001:10001:01111:00001:00001:01110',
+'::00000:00110:00110:00000:00110:00110:00000',
+';:00000:00110:00110:00000:00110:00010:00100',
+'<:00010:00100:01000:10000:01000:00100:00010',
+'=:00000:00000:11111:00000:11111:00000:00000',
+'>:01000:00100:00010:00001:00010:00100:01000',
+'?:01110:10001:00001:00010:00100:00000:00100',
+'@:01110:10001:10111:10101:10111:10000:01110',
+'A:01110:10001:10001:11111:10001:10001:10001',
+'B:11110:10001:10001:11110:10001:10001:11110',
+'C:01110:10001:10000:10000:10000:10001:01110',
+'D:11100:10010:10001:10001:10001:10010:11100',
+'E:11111:10000:10000:11110:10000:10000:11111',
+'F:11111:10000:10000:11110:10000:10000:10000',
+'G:01110:10001:10000:10111:10001:10001:01111',
+'H:10001:10001:10001:11111:10001:10001:10001',
+'I:01110:00100:00100:00100:00100:00100:01110',
+'J:00111:00010:00010:00010:00010:10010:01100',
+'K:10001:10010:10100:11000:10100:10010:10001',
+'L:10000:10000:10000:10000:10000:10000:11111',
+'M:10001:11011:10101:10101:10001:10001:10001',
+'N:10001:11001:11001:10101:10011:10011:10001',
+'O:01110:10001:10001:10001:10001:10001:01110',
+'P:11110:10001:10001:11110:10000:10000:10000',
+'Q:01110:10001:10001:10001:10101:10010:01101',
+'R:11110:10001:10001:11110:10100:10010:10001',
+'S:01111:10000:10000:01110:00001:00001:11110',
+'T:11111:00100:00100:00100:00100:00100:00100',
+'U:10001:10001:10001:10001:10001:10001:01110',
+'V:10001:10001:10001:10001:10001:01010:00100',
+'W:10001:10001:10001:10101:10101:11011:10001',
+'X:10001:10001:01010:00100:01010:10001:10001',
+'Y:10001:10001:01010:00100:00100:00100:00100',
+'Z:11111:00001:00010:00100:01000:10000:11111',
+'[:01110:01000:01000:01000:01000:01000:01110',
+'\\:10000:01000:01000:00100:00010:00010:00001',
+']:01110:00010:00010:00010:00010:00010:01110',
+'^:00100:01010:10001:00000:00000:00000:00000',
+'_:00000:00000:00000:00000:00000:00000:11111',
+'`:01000:00100:00000:00000:00000:00000:00000',
+'a:00000:00000:01110:00001:01111:10001:01111',
+'b:10000:10000:11110:10001:10001:10001:11110',
+'c:00000:00000:01111:10000:10000:10000:01111',
+'d:00001:00001:01111:10001:10001:10001:01111',
+'e:00000:00000:01110:10001:11111:10000:01110',
+'f:00110:01001:01000:11100:01000:01000:01000',
+'g:00000:00000:01111:10001:01111:00001:01110',
+'h:10000:10000:11110:10001:10001:10001:10001',
+'i:00100:00000:01100:00100:00100:00100:01110',
+'j:00010:00000:00110:00010:00010:10010:01100',
+'k:10000:10000:10010:10100:11000:10100:10010',
+'l:01100:00100:00100:00100:00100:00100:01110',
+'m:00000:00000:11010:10101:10101:10101:10101',
+'n:00000:00000:11110:10001:10001:10001:10001',
+'o:00000:00000:01110:10001:10001:10001:01110',
+'p:00000:00000:11110:10001:11110:10000:10000',
+'q:00000:00000:01111:10001:01111:00001:00001',
+'r:00000:00000:10110:11001:10000:10000:10000',
+'s:00000:00000:01111:10000:01110:00001:11110',
+'t:01000:01000:11100:01000:01000:01001:00110',
+'u:00000:00000:10001:10001:10001:10011:01101',
+'v:00000:00000:10001:10001:10001:01010:00100',
+'w:00000:00000:10001:10001:10101:10101:01010',
+'x:00000:00000:10001:01010:00100:01010:10001',
+'y:00000:00000:10001:10001:01111:00001:01110',
+'z:00000:00000:11111:00010:00100:01000:11111',
+'{:00110:01000:01000:11000:01000:01000:00110',
+'|:00100:00100:00100:00100:00100:00100:00100',
+'}:01100:00010:00010:00011:00010:00010:01100',
+'~:00000:00000:01001:10110:00000:00000:00000',
+'█:11111:11111:11111:11111:11111:11111:11111',
+'▸:01000:01100:01110:01111:01110:01100:01000',
+'▪:00000:01110:01110:01110:00000:00000:00000'
+];
+
+const GLYPHS = Object.create(null);
+for (const row of FONT_DATA) GLYPHS[row[0]] = row.slice(2).split(':');
+const MISSING = ['11111','10001','10001','10001','10001','10001','11111'];
+
+const CW = 6;    // 字身 5px + 字距 1px
+const LH = 9;    // 行高
+
+/* --- 繪圖基本操作 --------------------------------------------------- */
+function tw(str, sc) { sc = sc || 1; return Math.max(0, str.length * CW * sc - sc); }
+
+function frame() {                       // 清成白底（白=紙，黑=墨）
+  g.globalCompositeOperation = 'source-over';
+  g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  g.fillStyle = '#000';
+}
+function text(str, x, y, sc) {
+  sc = sc || 1;
+  g.fillStyle = '#000';
+  let cx = x;
+  for (let i = 0; i < str.length; i++) {
+    const gl = GLYPHS[str[i]] || MISSING;
+    for (let r = 0; r < 7; r++) {
+      const bits = gl[r];
+      for (let c = 0; c < 5; c++)
+        if (bits.charCodeAt(c) === 49) g.fillRect(cx + c * sc, y + r * sc, sc, sc);
+    }
+    cx += CW * sc;
+  }
+}
+function ctext(str, y, sc) { text(str, Math.round((W - tw(str, sc)) / 2), y, sc); }
+function rtext(str, y, sc) { text(str, W - 1 - tw(str, sc), y, sc); }
+function fit(str, px) { return str.slice(0, Math.max(0, Math.floor((px + 1) / CW))); }
+function rect(x, y, w, h) { g.fillStyle = '#000'; g.fillRect(x, y, w, h); }
+function hline(y) { rect(0, y, W, 1); }
+function box(x, y, w, h) {               // 空心框
+  rect(x, y, w, 1); rect(x, y + h - 1, w, 1);
+  rect(x, y, 1, h); rect(x + w - 1, y, 1, h);
+}
+function invert(x, y, w, h) {            // 反白（difference 合成）
+  g.save();
+  g.globalCompositeOperation = 'difference';
+  g.fillStyle = '#fff';
+  g.fillRect(x, y, w, h);
+  g.restore();
+  g.fillStyle = '#000';
+}
+function bitmap(rows, x, y) {            // 用 "0101" 字串陣列畫小圖示
+  g.fillStyle = '#000';
+  for (let r = 0; r < rows.length; r++)
+    for (let c = 0; c < rows[r].length; c++)
+      if (rows[r][c] === '1') g.fillRect(x + c, y + r, 1, 1);
+}
+
+function present() {
+  const paper = S.power ? THEMES[S.theme].paper : OFF_PAPER;
+  const ink   = S.power ? THEMES[S.theme].ink   : [38, 43, 36];
+  const src = g.getImageData(0, 0, W, H).data;
+  const dst = imgOut.data;
+  for (let i = 0, n = W * H; i < n; i++) {
+    const o = i << 2;
+    const lum = (src[o] * 299 + src[o + 1] * 587 + src[o + 2] * 114) / 1000;
+    const c = lum < 128 ? ink : paper;
+    dst[o] = c[0]; dst[o + 1] = c[1]; dst[o + 2] = c[2]; dst[o + 3] = 255;
+  }
+  gOut.putImageData(imgOut, 0, 0);
+  vctx.imageSmoothingEnabled = false;
+  vctx.drawImage(out, 0, 0, W, H, 0, 0, lcd.width, lcd.height);
+  bezel.classList.toggle('lit', S.power);
+}
+
+/* =========================================================================
+ * 2. 音效 —— Web Audio 單音方波，模擬單聲道鈴聲
+ * ========================================================================= */
+let ac = null;
+function audio() {
+  if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function tone(freq, dur, at, vol) {
+  if (!S.sound) return;
+  const a = audio(), t = at === undefined ? a.currentTime : a.currentTime + at;
+  const o = a.createOscillator(), gain = a.createGain();
+  o.type = 'square'; o.frequency.value = freq;
+  gain.gain.setValueAtTime(vol === undefined ? 0.06 : vol, t);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(gain); gain.connect(a.destination);
+  o.start(t); o.stop(t + dur + 0.02);
+}
+function beep()  { tone(1200, 0.035, 0, 0.05); }
+function blip()  { tone(880, 0.05, 0, 0.05); }
+function error() { tone(220, 0.16, 0, 0.07); }
+
+// Gran Vals（1902，公有領域）片段，當開機鈴聲
+const TUNE = [
+  [659.25, .13], [587.33, .13], [369.99, .26], [415.30, .26],
+  [554.37, .13], [493.88, .13], [293.66, .26], [329.63, .26],
+  [493.88, .13], [440.00, .13], [277.18, .26], [329.63, .26],
+  [440.00, .46]
+];
+function playTune() {
+  let t = 0;
+  for (const [f, d] of TUNE) { tone(f, d * 0.9, t, 0.055); t += d; }
+}
+
+/* =========================================================================
+ * 3. 全域狀態
+ * ========================================================================= */
+const S = {
+  power: false, boot: 0,
+  scr: 'idle', stack: [],
+  theme: 0, sound: true,
+  menuIdx: 0, listIdx: 0,
+  dial: '',
+  signal: 4, battery: 4,
+  toast: null, toastUntil: 0
+};
+
+const MENU = [
+  { id: 'messages', label: 'Messages',   icon: ['1111111','1100011','1010101','1001001','1000001','1000001','1111111'] },
+  { id: 'contacts', label: 'Contacts',   icon: ['0011100','0100010','0100010','0011100','0011100','0111110','1100011'] },
+  { id: 'calllog',  label: 'Call log',   icon: ['1100000','1110000','0111000','0011100','0001110','0000111','0000011'] },
+  { id: 'games',    label: 'Games',      icon: ['0000000','0111100','0100000','0111110','0000010','0111110','0000000'] },
+  { id: 'clock',    label: 'Clock',      icon: ['0011100','0100010','1001001','1001111','1000001','0100010','0011100'] },
+  { id: 'calc',     label: 'Calculator', icon: ['1111111','1000001','1011101','1000001','1010101','1010101','1111111'] },
+  { id: 'torch',    label: 'Torch',      icon: ['0001000','0101010','0011100','0011100','0001000','0001000','0001000'] },
+  { id: 'settings', label: 'Settings',   icon: ['0010100','1111111','0111110','1101011','0111110','1111111','0010100'] }
+];
+
+const CONTACTS = [
+  { name: 'Mum',        num: '+81 90 1111 2222' },
+  { name: 'Dad',        num: '+81 90 3333 4444' },
+  { name: 'Locas HQ',   num: '+81 3 5555 6666' },
+  { name: 'Rex',        num: '+886 912 345 678' },
+  { name: 'Pizza',      num: '0120 555 090' },
+  { name: 'Voicemail',  num: '1571' }
+];
+
+const MESSAGES = [
+  { from: 'Mum',    body: 'Are you coming home for dinner tonight?' },
+  { from: 'Locas',  body: 'Your OTP is 4821. Do not share this code.' },
+  { from: 'Nokia',  body: 'Welcome to Nokia 1280. Connecting People.' }
+];
+
+const CALLLOG = [
+  { t: 'out',    name: 'Mum',      when: '09:41' },
+  { t: 'in',     name: 'Locas HQ', when: 'Yest.' },
+  { t: 'missed', name: '090 1234', when: 'Yest.' },
+  { t: 'out',    name: 'Pizza',    when: 'Mon' }
+];
+
+/* =========================================================================
+ * 4. 共用畫面元件
+ * ========================================================================= */
+function statusBar() {
+  // 訊號格
+  for (let i = 0; i < 4; i++) {
+    const h = 2 + i * 2;
+    if (i < S.signal) rect(1 + i * 3, 8 - h, 2, h);
+    else rect(1 + i * 3, 7, 2, 1);
+  }
+  // 電池
+  const bx = W - 13;
+  box(bx, 1, 11, 6);
+  rect(bx + 11, 3, 1, 2);
+  rect(bx + 2, 3, Math.max(1, S.battery * 2), 2);
+  // 電信商
+  const op = 'LOCAS';
+  text(op, Math.round((W - tw(op)) / 2), 0);
+}
+
+function softBar(l, r) {
+  hline(H - 10);
+  if (l) text(l, 1, H - 8);
+  if (r) text(r, W - 1 - tw(r), H - 8);
+}
+
+function titleBar(t) {
+  ctext(t, 10);
+  invert(0, 9, W, 10);
+}
+
+/** 通用清單 */
+function listView(items, idx, top, rows) {
+  let start = Math.max(0, Math.min(idx - (rows - 1), items.length - rows));
+  if (start < 0) start = 0;
+  for (let i = 0; i < rows && start + i < items.length; i++) {
+    const it = items[start + i];
+    const y = top + i * LH;
+    let x = 2;
+    if (it.icon) { bitmap(it.icon, 2, y + 1); x = 11; }
+    text(fit(it.label, W - x - 6), x, y + 1);
+    if (start + i === idx) invert(0, y, W - 4, LH);
+  }
+  // 捲軸
+  if (items.length > rows) {
+    const trackH = rows * LH;
+    box(W - 3, top, 3, trackH);
+    const knob = Math.max(3, Math.round(trackH * rows / items.length));
+    const ky = top + Math.round((trackH - knob) * idx / (items.length - 1));
+    rect(W - 3, ky, 3, knob);
+  }
+}
+
+const COLS = Math.floor((W - 3) / CW);   // 每行可容納字數 = 15
+
+function wrap(str, cols) {
+  const words = str.split(/\s+/), lines = [];
+  let cur = '';
+  for (const w of words) {
+    if (!cur.length) { cur = w; }
+    else if ((cur + ' ' + w).length <= cols) { cur += ' ' + w; }
+    else { lines.push(cur); cur = w; }
+    while (cur.length > cols) { lines.push(cur.slice(0, cols)); cur = cur.slice(cols); }
+  }
+  if (cur.length) lines.push(cur);
+  return lines;
+}
+
+function toast(msg) { S.toast = msg; S.toastUntil = Date.now() + 1400; }
+function drawToast() {
+  if (!S.toast || Date.now() > S.toastUntil) { S.toast = null; return; }
+  const lines = wrap(S.toast, COLS - 2);
+  const h = lines.length * LH + 7;
+  const y = Math.round((H - h) / 2);
+  g.fillStyle = '#fff'; g.fillRect(2, y, W - 4, h);
+  box(2, y, W - 4, h);
+  lines.forEach((l, i) => ctext(l, y + 4 + i * LH));
+}
+
+function go(scr)   { S.stack.push(S.scr); S.scr = scr; S.listIdx = 0; if (SCR[scr].enter) SCR[scr].enter(); }
+function back()    { S.scr = S.stack.pop() || 'idle'; if (SCR[S.scr].reenter) SCR[S.scr].reenter(); }
+function home()    { S.stack.length = 0; S.scr = 'idle'; }
+
+function clock2() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function dateStr() {
+  const d = new Date();
+  const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+  const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
+  return wd + ' ' + d.getDate() + ' ' + mo;
+}
+
+/* =========================================================================
+ * 5. 多次點按（multi-tap）文字輸入
+ * ========================================================================= */
+const KEYMAP = {
+  '1': ".,?!'\"1-()@/:", '2': 'abc2', '3': 'def3', '4': 'ghi4', '5': 'jkl5',
+  '6': 'mno6', '7': 'pqrs7', '8': 'tuv8', '9': 'wxyz9', '0': ' 0'
+};
+const MODES = ['Abc', 'abc', 'ABC', '123'];
+
+const Typer = {
+  text: '', mode: 0, lastKey: null, lastAt: 0, cycle: 0,
+  reset(t) { this.text = t || ''; this.lastKey = null; this.cycle = 0; },
+  commit() { this.lastKey = null; },
+  key(k) {
+    const now = Date.now();
+    if (MODES[this.mode] === '123') {
+      if (KEYMAP[k] !== undefined) { this.text += k; return true; }
+      if (k === '*') { this.text += '+'; return true; }
+      return false;
+    }
+    if (!KEYMAP[k]) {
+      if (k === '*') { this.text += '*'; this.commit(); return true; }
+      return false;
+    }
+    const set = KEYMAP[k];
+    if (this.lastKey === k && now - this.lastAt < 850) {
+      this.cycle = (this.cycle + 1) % set.length;
+      this.text = this.text.slice(0, -1);
+    } else {
+      this.cycle = 0;
+    }
+    let ch = set[this.cycle];
+    const m = MODES[this.mode];
+    if (m === 'ABC') ch = ch.toUpperCase();
+    else if (m === 'Abc') {
+      const prev = this.text.replace(/\s+$/, '');
+      if (!prev.length || /[.!?]$/.test(prev)) ch = ch.toUpperCase();
+    }
+    this.text += ch;
+    this.lastKey = k; this.lastAt = now;
+    return true;
+  },
+  del() { if (this.text.length) { this.text = this.text.slice(0, -1); this.commit(); return true; } return false; },
+  nextMode() { this.mode = (this.mode + 1) % MODES.length; this.commit(); }
+};
+
+/* =========================================================================
+ * 6. Snake II
+ * ========================================================================= */
+const Snake = {
+  CELL: 3, X0: 1, Y0: 10, COLS: 31, ROWS: 15,
+  body: [], dir: [1, 0], next: [1, 0], food: null,
+  score: 0, best: Number(localStorage.getItem('n1280.snake') || 0),
+  state: 'ready', acc: 0, step: 140,
+  start() {
+    this.body = [[6, 7], [5, 7], [4, 7]];
+    this.dir = [1, 0]; this.next = [1, 0];
+    this.score = 0; this.step = 140; this.acc = 0;
+    this.state = 'run'; this.place();
+  },
+  place() {
+    let p;
+    do { p = [1 + ((Math.random() * (this.COLS - 2)) | 0), 1 + ((Math.random() * (this.ROWS - 2)) | 0)]; }
+    while (this.body.some(b => b[0] === p[0] && b[1] === p[1]));
+    this.food = p;
+  },
+  tick(dt) {
+    if (this.state !== 'run') return;
+    this.acc += dt;
+    while (this.acc >= this.step) {
+      this.acc -= this.step;
+      this.dir = this.next;
+      const h = [this.body[0][0] + this.dir[0], this.body[0][1] + this.dir[1]];
+      if (h[0] < 0 || h[1] < 0 || h[0] >= this.COLS || h[1] >= this.ROWS ||
+          this.body.some(b => b[0] === h[0] && b[1] === h[1])) {
+        this.state = 'over'; error();
+        if (this.score > this.best) { this.best = this.score; localStorage.setItem('n1280.snake', this.best); }
+        return;
+      }
+      this.body.unshift(h);
+      if (h[0] === this.food[0] && h[1] === this.food[1]) {
+        this.score += 10; blip(); this.place();
+        this.step = Math.max(60, this.step - 4);
+      } else this.body.pop();
+    }
+  },
+  turn(d) {
+    if (d[0] === -this.dir[0] && d[1] === -this.dir[1]) return;
+    this.next = d;
+  },
+  draw() {
+    if (this.state === 'ready') {
+      ctext('SNAKE', 16, 2);
+      ctext('High ' + this.best, 36);
+      ctext('Press OK', 47);
+      return;
+    }
+    const C = this.CELL;
+    box(this.X0 - 1, this.Y0 - 1, this.COLS * C + 2, this.ROWS * C + 2);
+    for (const b of this.body) rect(this.X0 + b[0] * C, this.Y0 + b[1] * C, C, C);
+    if (this.food) {
+      const f = this.food;
+      rect(this.X0 + f[0] * C + 1, this.Y0 + f[1] * C, 1, C);
+      rect(this.X0 + f[0] * C, this.Y0 + f[1] * C + 1, C, 1);
+    }
+    text(String(this.score), 1, 0);
+    if (this.state === 'over') {
+      const bw = 66, bh = 27, bx = (W - bw) >> 1, by = 17;
+      g.fillStyle = '#fff'; g.fillRect(bx, by, bw, bh);
+      box(bx, by, bw, bh);
+      ctext('GAME OVER', by + 5);
+      ctext('Score ' + this.score, by + 15);
+    }
+  }
+};
+
+/* =========================================================================
+ * 7. 計算機
+ * ========================================================================= */
+const Calc = {
+  cur: '0', acc: null, op: null, fresh: true,
+  OPS: ['+', '-', 'x', '/'],
+  digit(d) {
+    if (this.fresh) { this.cur = (d === '.') ? '0.' : d; this.fresh = false; return; }
+    if (d === '.' && this.cur.includes('.')) return;
+    if (this.cur === '0' && d !== '.') this.cur = d;
+    else if (this.cur.replace('-', '').replace('.', '').length < 11) this.cur += d;
+  },
+  cycleOp() {
+    const i = this.op === null ? -1 : this.OPS.indexOf(this.op);
+    if (i === -1) { this.acc = parseFloat(this.cur); this.op = '+'; this.fresh = true; }
+    else this.op = this.OPS[(i + 1) % 4];
+  },
+  eq() {
+    if (this.op === null) return;
+    const b = parseFloat(this.cur), a = this.acc;
+    let r;
+    switch (this.op) {
+      case '+': r = a + b; break;
+      case '-': r = a - b; break;
+      case 'x': r = a * b; break;
+      case '/': r = (b === 0 ? NaN : a / b); break;
+    }
+    this.cur = isFinite(r) ? String(Math.round(r * 1e8) / 1e8) : 'Error';
+    this.acc = null; this.op = null; this.fresh = true;
+  },
+  clear() { this.cur = '0'; this.acc = null; this.op = null; this.fresh = true; },
+  neg() { this.cur = this.cur.startsWith('-') ? this.cur.slice(1) : '-' + this.cur; }
+};
+
+/* =========================================================================
+ * 8. 各畫面：draw(now) / key(k)
+ * ========================================================================= */
+let composeTarget = 'compose';
+let viewMsg = 0, viewContact = 0;
+let callStart = 0, callWho = '';
+
+const SCR = {
+
+  /* ---- 待機 ---- */
+  idle: {
+    draw() {
+      statusBar();
+      if (S.dial) {
+        if (S.dial.length <= 7) ctext(S.dial, 24, 2);
+        else { ctext(S.dial.slice(0, 15), 24); ctext(S.dial.slice(15, 30), 34); }
+        softBar('Call', 'Clear');
+      } else {
+        ctext(clock2(), 20, 2);
+        ctext(dateStr(), 42);
+        softBar('Menu', 'Names');
+      }
+    },
+    key(k) {
+      if (/^[0-9*#]$/.test(k)) { S.dial += (k === '*' ? '+' : k); beep(); return; }
+      if (k === 'soft1') { if (S.dial) { doCall(S.dial); } else { S.menuIdx = 0; go('menu'); } return; }
+      if (k === 'soft2' || k === 'clear') {
+        if (S.dial) { S.dial = S.dial.slice(0, -1); }
+        else go('contacts');
+        return;
+      }
+      if (k === 'ok') { if (S.dial) doCall(S.dial); else { S.menuIdx = 0; go('menu'); } return; }
+      if (k === 'call') { doCall(S.dial || CALLLOG[0].name); return; }
+      if (k === 'up')   { go('torch'); return; }
+      if (k === 'down') { go('contacts'); return; }
+    }
+  },
+
+  /* ---- 主選單 ---- */
+  menu: {
+    draw() {
+      titleBar('Menu');
+      listView(MENU, S.menuIdx, 21, 4);
+      text((S.menuIdx + 1) + '/' + MENU.length, 1, 0);
+      softBar('Select', 'Back');
+    },
+    key(k) {
+      if (k === 'up')   { S.menuIdx = (S.menuIdx + MENU.length - 1) % MENU.length; beep(); }
+      if (k === 'down') { S.menuIdx = (S.menuIdx + 1) % MENU.length; beep(); }
+      if (/^[1-8]$/.test(k)) { S.menuIdx = +k - 1; k = 'ok'; }
+      if (k === 'ok' || k === 'soft1' || k === 'call') { blip(); go(MENU[S.menuIdx].id); }
+      if (k === 'soft2' || k === 'clear' || k === 'end') back();
+    }
+  },
+
+  /* ---- 訊息 ---- */
+  messages: {
+    draw() {
+      titleBar('Messages');
+      const items = [{ label: 'Inbox (' + MESSAGES.length + ')' }, { label: 'Write message' }];
+      listView(items, S.listIdx, 21, 4);
+      softBar('Select', 'Back');
+    },
+    key(k) {
+      if (k === 'up')   { S.listIdx = (S.listIdx + 1) % 2; beep(); }
+      if (k === 'down') { S.listIdx = (S.listIdx + 1) % 2; beep(); }
+      if (k === 'ok' || k === 'soft1') {
+        blip();
+        if (S.listIdx === 0) go('inbox');
+        else { Typer.reset(''); composeTarget = ''; go('compose'); }
+      }
+      if (k === 'soft2' || k === 'clear' || k === 'end') back();
+    }
+  },
+
+  inbox: {
+    draw() {
+      titleBar('Inbox');
+      listView(MESSAGES.map(m => ({ label: m.from })), S.listIdx, 21, 4);
+      softBar('Read', 'Back');
+    },
+    key(k) {
+      if (k === 'up')   { S.listIdx = (S.listIdx + MESSAGES.length - 1) % MESSAGES.length; beep(); }
+      if (k === 'down') { S.listIdx = (S.listIdx + 1) % MESSAGES.length; beep(); }
+      if (k === 'ok' || k === 'soft1') { viewMsg = S.listIdx; blip(); go('msgview'); }
+      if (k === 'soft2' || k === 'clear') back();
+      if (k === 'end') home();
+    }
+  },
+
+  msgview: {
+    scroll: 0,
+    enter() { this.scroll = 0; },
+    draw() {
+      const m = MESSAGES[viewMsg];
+      titleBar(fit(m.from, W - 6));
+      const lines = wrap(m.body, COLS);
+      for (let i = 0; i < 4 && i + this.scroll < lines.length; i++)
+        text(lines[i + this.scroll], 2, 21 + i * LH);
+      softBar('Reply', 'Back');
+    },
+    key(k) {
+      const lines = wrap(MESSAGES[viewMsg].body, COLS);
+      if (k === 'down' && this.scroll < lines.length - 4) { this.scroll++; beep(); }
+      if (k === 'up' && this.scroll > 0) { this.scroll--; beep(); }
+      if (k === 'soft1' || k === 'ok') { Typer.reset(''); composeTarget = MESSAGES[viewMsg].from; blip(); go('compose'); }
+      if (k === 'soft2' || k === 'clear') back();
+      if (k === 'end') home();
+    }
+  },
+
+  compose: {
+    draw() {
+      text(MODES[Typer.mode], 1, 0);
+      rtext(String(Typer.text.length), 0);
+      hline(9);
+      const lines = wrap(Typer.text + '█', COLS);
+      const start = Math.max(0, lines.length - 5);
+      for (let i = start; i < lines.length; i++)
+        text(lines[i], 2, 12 + (i - start) * LH);
+      softBar(Typer.text ? 'Send' : 'Abc', 'Clear');
+    },
+    key(k) {
+      if (k === '#') { Typer.nextMode(); beep(); return; }
+      if (Typer.key(k)) { beep(); return; }
+      if (k === 'clear' || k === 'soft2') {
+        if (!Typer.del()) back();
+        return;
+      }
+      if (k === 'soft1' || k === 'ok') {
+        if (Typer.text) { blip(); toast('Message sent'); Typer.reset(''); setTimeout(() => back(), 900); }
+        return;
+      }
+      if (k === 'end') home();
+    }
+  },
+
+  /* ---- 聯絡人 ---- */
+  contacts: {
+    draw() {
+      titleBar('Contacts');
+      listView(CONTACTS.map(c => ({ label: c.name })), S.listIdx, 21, 4);
+      softBar('View', 'Back');
+    },
+    key(k) {
+      if (k === 'up')   { S.listIdx = (S.listIdx + CONTACTS.length - 1) % CONTACTS.length; beep(); }
+      if (k === 'down') { S.listIdx = (S.listIdx + 1) % CONTACTS.length; beep(); }
+      if (k === 'ok' || k === 'soft1') { viewContact = S.listIdx; blip(); go('contactview'); }
+      if (k === 'call') doCall(CONTACTS[S.listIdx].name);
+      if (k === 'soft2' || k === 'clear') back();
+      if (k === 'end') home();
+    }
+  },
+
+  contactview: {
+    draw() {
+      const c = CONTACTS[viewContact];
+      titleBar('Details');
+      ctext(c.name, 24);
+      ctext(c.num, 36);
+      softBar('Call', 'Back');
+    },
+    key(k) {
+      if (k === 'soft1' || k === 'ok' || k === 'call') doCall(CONTACTS[viewContact].name);
+      if (k === 'soft2' || k === 'clear') back();
+      if (k === 'end') home();
+    }
+  },
+
+  /* ---- 通話記錄 ---- */
+  calllog: {
+    draw() {
+      titleBar('Call log');
+      const marks = { out: '>', in: '<', missed: '!' };
+      listView(CALLLOG.map(c => ({ label: marks[c.t] + ' ' + c.name })), S.listIdx, 21, 4);
+      softBar('Call', 'Back');
+    },
+    key(k) {
+      if (k === 'up')   { S.listIdx = (S.listIdx + CALLLOG.length - 1) % CALLLOG.length; beep(); }
+      if (k === 'down') { S.listIdx = (S.listIdx + 1) % CALLLOG.length; beep(); }
+      if (k === 'ok' || k === 'soft1' || k === 'call') doCall(CALLLOG[S.listIdx].name);
+      if (k === 'soft2' || k === 'clear') back();
+      if (k === 'end') home();
+    }
+  },
+
+  /* ---- 通話中 ---- */
+  calling: {
+    draw() {
+      statusBar();
+      ctext('Calling...', 16);
+      ctext(fit(callWho, W - 2), 28);
+      const s = Math.floor((Date.now() - callStart) / 1000);
+      ctext(String((s / 60) | 0).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'), 42, 2);
+      softBar('', 'End');
+    },
+    key(k) { if (k === 'end' || k === 'soft2' || k === 'clear' || k === 'ok') { tone(440, .1); S.dial = ''; back(); } }
+  },
+
+  /* ---- 遊戲 ---- */
+  games: {
+    enter() { Snake.state = 'ready'; },
+    reenter() { Snake.state = 'ready'; },
+    draw() {
+      Snake.draw();
+      if (Snake.state === 'ready')      softBar('Start', 'Back');
+      else if (Snake.state === 'over')  softBar('Again', 'Back');
+      else                              softBar('', 'Pause');
+    },
+    key(k) {
+      if (Snake.state === 'run') {
+        if (k === 'up' || k === '2')    Snake.turn([0, -1]);
+        if (k === 'down' || k === '8')  Snake.turn([0, 1]);
+        if (k === 'left' || k === '4')  Snake.turn([-1, 0]);
+        if (k === 'right' || k === '6') Snake.turn([1, 0]);
+        if (k === 'soft2' || k === 'clear' || k === 'ok') { Snake.state = 'ready'; }
+        if (k === 'end') home();
+        return;
+      }
+      if (k === 'ok' || k === 'soft1' || k === '5') { Snake.start(); blip(); return; }
+      if (k === 'soft2' || k === 'clear') back();
+      if (k === 'end') home();
+    }
+  },
+
+  /* ---- 時鐘 ---- */
+  clock: {
+    draw() {
+      titleBar('Clock');
+      ctext(clock2(), 24, 2);
+      ctext(dateStr(), 45);
+      softBar('', 'Back');
+    },
+    key(k) { if (k === 'soft2' || k === 'clear' || k === 'ok') back(); if (k === 'end') home(); }
+  },
+
+  /* ---- 計算機 ---- */
+  calc: {
+    draw() {
+      titleBar('Calculator');
+      const line = (Calc.op ? Calc.op + ' ' : '') + Calc.cur;
+      rtext(line.slice(-15), 25);
+      hline(36);
+      text('* = operator', 2, 40);
+      text('# = decimal', 2, 49);
+      softBar('=', 'Clear');
+    },
+    key(k) {
+      if (/^[0-9]$/.test(k)) { Calc.digit(k); beep(); return; }
+      if (k === '#') { Calc.digit('.'); beep(); return; }
+      if (k === '*') { Calc.cycleOp(); beep(); return; }
+      if (k === 'ok' || k === 'soft1') { Calc.eq(); blip(); return; }
+      if (k === 'left') { Calc.neg(); beep(); return; }
+      if (k === 'clear' || k === 'soft2') {
+        if (Calc.cur !== '0' || Calc.op) { Calc.clear(); beep(); } else back();
+        return;
+      }
+      if (k === 'end') home();
+    }
+  },
+
+  /* ---- 手電筒 ---- */
+  torch: {
+    draw() {
+      // 光束：由燈頭向下擴散的三角形
+      for (let i = 0; i < 26; i++) rect(48 - i, 24 + i, 1 + i * 2, 1);
+      rect(42, 14, 12, 10);
+      rect(45, 10, 6, 4);
+      invert(0, 9, W, H - 19);   // 反白 -> 白底黑光束變成黑底亮光束
+      ctext('TORCH ON', 0);
+      softBar('', 'Off');
+    },
+    key(k) { if (k) back(); }
+  },
+
+  /* ---- 設定 ---- */
+  settings: {
+    draw() {
+      titleBar('Settings');
+      const items = [
+        { label: 'Scr: ' + THEMES[S.theme].name },
+        { label: 'Sound: ' + (S.sound ? 'On' : 'Off') },
+        { label: 'Size: ' + SCALE + 'x' },
+        { label: 'About' }
+      ];
+      listView(items, S.listIdx, 21, 4);
+      softBar('Change', 'Back');
+    },
+    key(k) {
+      const n = 4;
+      if (k === 'up')   { S.listIdx = (S.listIdx + n - 1) % n; beep(); }
+      if (k === 'down') { S.listIdx = (S.listIdx + 1) % n; beep(); }
+      if (k === 'ok' || k === 'soft1' || k === 'right') {
+        blip();
+        if (S.listIdx === 0) S.theme = (S.theme + 1) % THEMES.length;
+        if (S.listIdx === 1) S.sound = !S.sound;
+        if (S.listIdx === 2) { SCALE = SCALE >= 8 ? 4 : SCALE + 1; applyScale(); }
+        if (S.listIdx === 3) go('about');
+        save();
+      }
+      if (k === 'soft2' || k === 'clear') back();
+      if (k === 'end') home();
+    }
+  },
+
+  about: {
+    draw() {
+      titleBar('About');
+      ctext('Nokia 1280', 24);
+      ctext('Web Launcher', 34);
+      ctext('96x68 mono', 46);
+      softBar('', 'Back');
+    },
+    key(k) { if (k) back(); }
+  },
+
+  /* ---- 開機動畫 ---- */
+  bootscr: {
+    draw() {
+      const t = Date.now() - S.boot;
+      if (t < 1200) {
+        ctext('NOKIA', 26, 2);
+      } else {
+        ctext('NOKIA', 12, 2);
+        // 握手動畫：兩隻手慢慢靠攏
+        const p = Math.min(1, (t - 1200) / 700);
+        const gap = Math.round((1 - p) * 16);
+        rect(26 - gap, 32, 20, 3);
+        rect(50 + gap, 32, 20, 3);
+        ctext('Connecting', 44);
+        ctext('People', 54);
+      }
+      if (t > 2400) { S.scr = 'idle'; S.stack.length = 0; }
+    },
+    key() {}
+  }
+};
+
+function doCall(who) {
+  callWho = who; callStart = Date.now();
+  tone(440, .12); tone(520, .12, .16);
+  S.stack.push(S.scr); S.scr = 'calling';
+}
+
+/* =========================================================================
+ * 9. 電源 / 輸入 / 主迴圈
+ * ========================================================================= */
+function powerOn() {
+  S.power = true; S.boot = Date.now(); S.scr = 'bootscr'; S.stack.length = 0;
+  S.dial = '';
+  playTune();
+}
+function powerOff() {
+  S.power = false; S.scr = 'idle'; S.stack.length = 0; S.dial = '';
+  tone(520, .1); tone(392, .16, .12);
+}
+
+function press(k) {
+  if (!S.power) { powerOn(); return; }
+  if (S.scr === 'bootscr') return;
+  const scr = SCR[S.scr];
+  if (scr && scr.key) scr.key(k);
+}
+
+/* 長按紅鍵關機 */
+let endHold = null;
+function keyDown(k) {
+  if (k === 'end' && S.power) {
+    endHold = setTimeout(() => { endHold = null; powerOff(); }, 900);
+    return;
+  }
+  press(k);
+}
+function keyUp(k) {
+  if (k === 'end') {
+    if (endHold) { clearTimeout(endHold); endHold = null; press('end'); }
+  }
+}
+
+/* --- 螢幕上的按鍵 --- */
+document.querySelectorAll('.key').forEach(btn => {
+  const k = btn.dataset.k;
+  const down = e => { e.preventDefault(); btn.classList.add('down'); keyDown(k); };
+  const up   = e => { e.preventDefault(); btn.classList.remove('down'); keyUp(k); };
+  btn.addEventListener('pointerdown', down);
+  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointerleave', () => btn.classList.remove('down'));
+});
+
+/* --- 實體鍵盤 --- */
+const KEYS = {
+  ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
+  Enter: 'ok', Backspace: 'clear', Escape: 'end',
+  z: 'soft1', x: 'soft2', c: 'call', e: 'end'
+};
+const held = {};
+window.addEventListener('keydown', ev => {
+  let k = KEYS[ev.key] || (/^[0-9*#]$/.test(ev.key) ? ev.key : null);
+  if (!k) return;
+  ev.preventDefault();
+  if (held[k]) return;
+  held[k] = true;
+  const btn = document.querySelector('.key[data-k="' + (k === 'clear' ? 'soft2' : k) + '"]');
+  if (btn) btn.classList.add('down');
+  keyDown(k);
+});
+window.addEventListener('keyup', ev => {
+  let k = KEYS[ev.key] || (/^[0-9*#]$/.test(ev.key) ? ev.key : null);
+  if (!k) return;
+  held[k] = false;
+  const btn = document.querySelector('.key[data-k="' + (k === 'clear' ? 'soft2' : k) + '"]');
+  if (btn) btn.classList.remove('down');
+  keyUp(k);
+});
+
+/* --- 設定保存 --- */
+function save() {
+  try {
+    localStorage.setItem('n1280.cfg', JSON.stringify({ theme: S.theme, sound: S.sound, scale: SCALE }));
+  } catch (e) {}
+}
+function load() {
+  try {
+    const c = JSON.parse(localStorage.getItem('n1280.cfg') || '{}');
+    if (typeof c.theme === 'number') S.theme = c.theme % THEMES.length;
+    if (typeof c.sound === 'boolean') S.sound = c.sound;
+    if (typeof c.scale === 'number') { SCALE = Math.min(8, Math.max(4, c.scale)); applyScale(); }
+  } catch (e) {}
+}
+
+/* --- 主迴圈 --- */
+let last = performance.now();
+function loop(now) {
+  const dt = Math.min(120, now - last); last = now;
+
+  if (S.scr === 'games') Snake.tick(dt);
+
+  frame();
+  if (!S.power) {
+    ctext('Press any key', 26);
+    ctext('to power on', 36);
+  } else {
+    SCR[S.scr].draw(now);
+    drawToast();
+  }
+  present();
+  requestAnimationFrame(loop);
+}
+
+load();
+requestAnimationFrame(loop);
+
+})();
+</script>
+</body>
+</html>
