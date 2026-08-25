@@ -150,7 +150,13 @@
   /* ---------- 手機：整支填滿視窗，上下不留白 ---------- */
   @media (max-width:700px){
     body{
-      height:100vh; height:100dvh;
+      /* svh = 工具列展開時的可視高度。用 vh 會拿到「工具列收起」的高度，
+         內容就會被 Safari 底部工具列蓋住；因為這裡不捲動，被蓋住就永遠點不到。
+         min-height 也必須歸零 —— 基底的 min-height:100vh 會壓過 height。 */
+      height:100vh;              /* 最舊的瀏覽器 */
+      height:100svh;             /* iOS 15.4+ */
+      height:var(--app-h,100svh);/* JS 量到的 innerHeight，最可靠 */
+      min-height:0;
       padding:0; gap:0; overflow:hidden; justify-content:stretch;
     }
     h1,.sub,.hint,.foot{display:none}
@@ -488,8 +494,19 @@ function applyScale() {
   document.documentElement.style.setProperty('--w', (W * SCALE + 36) + 'px');
   fitScreen();
 }
-window.addEventListener('resize', fitScreen);
-window.addEventListener('orientationchange', () => setTimeout(fitScreen, 250));
+/**
+ * iOS Safari 的 100vh 是「工具列收起時」的高度，比實際可視區大，
+ * 版面會被底部工具列蓋住而且因為不捲動就再也點不到。
+ * innerHeight 才是扣掉工具列後的真實可視高度。
+ */
+function setAppHeight() {
+  document.documentElement.style.setProperty('--app-h', window.innerHeight + 'px');
+  fitScreen();
+}
+window.addEventListener('resize', setAppHeight);
+window.addEventListener('orientationchange', () => setTimeout(setAppHeight, 250));
+if (window.visualViewport) window.visualViewport.addEventListener('resize', setAppHeight);
+setAppHeight();
 
 /* =========================================================================
  * 2. 音效 —— Web Audio 單音方波，模擬單聲道鈴聲
