@@ -533,7 +533,7 @@ const S = {
   theme: 0, sound: true,
   menuIdx: 0, listIdx: 0,
   dial: '',
-  carrier: 'LOCAS',
+  carrier: 'NOKIA',
   signal: 4, battery: 94,
   toast: null, toastUntil: 0
 };
@@ -551,10 +551,12 @@ const MENU = [
 
 const WIFI = ['0111110','1000001','0011100','0100010','0001000'];
 
+const CARRIERS = ['NOKIA', 'CHUNGHWA', 'DOCOMO', 'NTT', 'SOFTBANK'];
+
 const CONTACTS = [
   { name: 'Mum',       num: '+81 90 1111 2222' },
   { name: 'Dad',       num: '+81 90 3333 4444' },
-  { name: 'Locas HQ',  num: '+81 3 5555 6666' },
+  { name: 'Nokia HQ',  num: '+81 3 5555 6666' },
   { name: 'Rex',       num: '+886 912 345 678' },
   { name: 'Pizza',     num: '0120 555 090' },
   { name: 'Voicemail', num: '1571' }
@@ -562,13 +564,13 @@ const CONTACTS = [
 
 const MESSAGES = [
   { from: 'Mum',   body: 'Are you coming home for dinner tonight?' },
-  { from: 'Locas', body: 'Your OTP is 4821. Do not share this code.' },
+  { from: 'Nokia', body: 'Your OTP is 4821. Do not share this code.' },
   { from: 'Nokia', body: 'Welcome to Nokia 1280. Connecting People.' }
 ];
 
 const CALLLOG = [
   { t: 'out',    name: 'Mum',      when: '09:41' },
-  { t: 'in',     name: 'Locas HQ', when: 'Yest.' },
+  { t: 'in',     name: 'Nokia HQ', when: 'Yest.' },
   { t: 'missed', name: '090 1234', when: 'Yest.' },
   { t: 'out',    name: 'Pizza',    when: 'Mon' }
 ];
@@ -1105,10 +1107,8 @@ const SCR = {
       if (k === 'ok' || k === 'soft1' || k === 'right') {
         blip();
         if (S.listIdx === 0) S.theme = (S.theme + 1) % THEMES.length;
-        if (S.listIdx === 1) {
-          const list = ['LOCAS', 'CHUNGHWA', 'DOCOMO', 'NTT', 'SOFTBANK'];
-          S.carrier = list[(list.indexOf(S.carrier) + 1) % list.length];
-        }
+        if (S.listIdx === 1)
+          S.carrier = CARRIERS[(CARRIERS.indexOf(S.carrier) + 1) % CARRIERS.length];
         if (S.listIdx === 2) S.sound = !S.sound;
         if (S.listIdx === 3) { SCALE = SCALE >= 5 ? 2 : SCALE + 1; applyScale(); }
         if (S.listIdx === 4) go('about');
@@ -1229,7 +1229,7 @@ function load() {
     const c = JSON.parse(localStorage.getItem('n1280.cfg') || '{}');
     if (typeof c.theme === 'number') S.theme = c.theme % THEMES.length;
     if (typeof c.sound === 'boolean') S.sound = c.sound;
-    if (typeof c.carrier === 'string') S.carrier = c.carrier;
+    if (CARRIERS.indexOf(c.carrier) >= 0) S.carrier = c.carrier;
     if (typeof c.scale === 'number') SCALE = Math.min(5, Math.max(2, c.scale));
   } catch (e) {}
 }
