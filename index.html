@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Nokia 1280 Launcher — Web</title>
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#15364f">
+<meta name="theme-color" content="#0d0d0d">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -14,193 +14,218 @@
 <meta name="apple-mobile-web-app-title" content="Nokia 1280">
 <style>
   :root{
-    --w: 642px;   /* 機身最大寬度，由 JS 依縮放設定更新 */
-    --px: 6px;    /* 一個 LCD 像素在畫面上的實際大小，由 JS 量測 */
+    --w: 420px;   /* 機身最大寬度 */
+    --px: 3px;    /* 一個 LCD 像素在畫面上的實際大小，由 JS 量測 */
+    --gap: 8px;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%;background:#0b0b0c}
   body{
     min-height:100vh;
-    background:radial-gradient(circle at 50% 0%, #2b2f36 0%, #14161a 55%, #0b0c0e 100%);
+    background:radial-gradient(circle at 50% -10%, #26282c 0%, #131416 55%, #0b0b0c 100%);
     color:#c9d1d9;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",sans-serif;
     display:flex; flex-direction:column; align-items:center;
-    gap:22px;
+    gap:20px;
     padding:
       calc(24px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
-      calc(40px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
-    /* 觸控：關掉雙擊縮放、長按選字與放大鏡、橡皮筋捲動 */
+      calc(32px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));
     touch-action:manipulation;
     -webkit-user-select:none; user-select:none;
     -webkit-touch-callout:none;
     -webkit-tap-highlight-color:transparent;
     overscroll-behavior:none;
   }
-
-  h1{font-size:17px;font-weight:600;letter-spacing:.04em;color:#e6edf3}
+  h1{font-size:16px;font-weight:600;letter-spacing:.04em;color:#e6edf3}
   .sub{font-size:12.5px;color:#8b949e;text-align:center;line-height:1.7;max-width:640px}
 
   /* ---------- 機身 ---------- */
   .phone{
     width:100%; max-width:var(--w);
-    padding:clamp(12px,3.5vw,22px);
-    background:linear-gradient(168deg,#2f6d9e 0%,#1d4a72 42%,#15364f 100%);
-    border-radius:clamp(16px,5vw,26px);
+    display:flex; flex-direction:column;
+    background:linear-gradient(#232427 0%, #151618 18%, #101113 100%);
+    border-radius:30px;
+    padding:14px 14px 18px;
     box-shadow:
-      0 0 0 1px rgba(255,255,255,.09) inset,
-      0 2px 0 rgba(255,255,255,.18) inset,
-      0 26px 60px -12px rgba(0,0,0,.75),
-      0 8px 20px rgba(0,0,0,.5);
-    user-select:none;
+      0 0 0 1px rgba(255,255,255,.07) inset,
+      0 1px 0 rgba(255,255,255,.14) inset,
+      0 30px 70px -14px rgba(0,0,0,.85);
   }
-  .brandbar{
-    display:flex;align-items:center;justify-content:center;
-    height:26px;margin-bottom:10px;
-  }
+  .cam{width:5px;height:5px;border-radius:50%;margin:2px auto 6px;
+       background:radial-gradient(circle at 35% 35%,#3b4a57,#0a0d10);
+       box-shadow:0 0 0 1px rgba(255,255,255,.10)}
+  .brandbar{display:flex;align-items:center;justify-content:center;padding:2px 0 10px}
   .brandbar span{
-    font:600 13px/1 "Helvetica Neue",Arial,sans-serif;
-    letter-spacing:.34em; color:#dfeaf3; opacity:.85; text-indent:.34em;
-  }
-  .earpiece{
-    width:52px;height:6px;border-radius:4px;margin:0 auto 8px;
-    background:linear-gradient(#0d1c28,#0a141c);
-    box-shadow:0 1px 0 rgba(255,255,255,.14);
+    font:800 clamp(15px,4.6vw,20px)/1 "Helvetica Neue",Arial,sans-serif;
+    letter-spacing:.10em; color:#fff; text-indent:.10em;
   }
 
   /* ---------- 螢幕 ---------- */
+  .screenslot{display:flex;align-items:center;justify-content:center}
   .bezel{
-    position:relative;
-    padding:clamp(6px,2vw,11px);
-    border-radius:10px;
-    background:linear-gradient(#0c1319,#0a0f14);
-    box-shadow:0 2px 6px rgba(0,0,0,.55) inset, 0 1px 0 rgba(255,255,255,.12);
+    position:relative; padding:4px; border-radius:4px;
+    background:#000;
+    box-shadow:0 0 0 1px #2c2d30, 0 2px 10px rgba(0,0,0,.6);
   }
-  .screenwrap{position:relative;line-height:0;border-radius:2px;overflow:hidden;width:-webkit-fit-content;width:fit-content;margin:0 auto}
+  .screenwrap{position:relative;line-height:0;overflow:hidden;
+              width:-webkit-fit-content;width:fit-content;margin:0 auto}
   canvas#lcd{display:block;image-rendering:pixelated;image-rendering:crisp-edges}
-  /* LCD 像素格線 */
   .lcdgrid{
     position:absolute;inset:0;pointer-events:none;
     background:
-      repeating-linear-gradient(to right, rgba(0,0,0,.07) 0 1px, transparent 1px var(--px)),
-      repeating-linear-gradient(to bottom, rgba(0,0,0,.07) 0 1px, transparent 1px var(--px));
-    mix-blend-mode:multiply; opacity:.6;
-    transition:opacity .2s;
+      repeating-linear-gradient(to right, rgba(0,0,0,.06) 0 1px, transparent 1px var(--px)),
+      repeating-linear-gradient(to bottom, rgba(0,0,0,.06) 0 1px, transparent 1px var(--px));
+    mix-blend-mode:multiply; opacity:.6; transition:opacity .2s;
   }
-  .glass{
-    position:absolute;inset:0;pointer-events:none;
-    background:linear-gradient(150deg,rgba(255,255,255,.20) 0%,rgba(255,255,255,.05) 26%,transparent 46%);
-  }
-  .bezel.lit{box-shadow:0 2px 6px rgba(0,0,0,.55) inset,0 1px 0 rgba(255,255,255,.12),0 0 26px -4px rgba(190,255,170,.28)}
+  .glass{position:absolute;inset:0;pointer-events:none;
+         background:linear-gradient(155deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.04) 24%,transparent 44%)}
+  body.nogrid .lcdgrid{opacity:0}
 
   /* ---------- 鍵盤 ---------- */
-  .keys{margin-top:clamp(10px,3vw,16px);display:flex;flex-direction:column;gap:clamp(5px,1.6vw,7px)}
-  .row{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(5px,1.6vw,7px)}
+  .keys{
+    margin-top:14px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(6,minmax(38px,auto));
+    gap:var(--gap);
+  }
   .key{
-    position:relative;
-    border:0; cursor:pointer;
-    border-radius:9px;
-    padding:6px 4px 5px;
-    background:linear-gradient(#eef2f5,#c3ccd4);
-    color:#1b2733;
-    box-shadow:0 2px 0 #7d8994, 0 3px 5px rgba(0,0,0,.35);
-    transition:transform .04s, box-shadow .04s, filter .12s;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;
-    min-height:clamp(30px,8.5vw,40px);
+    position:relative; border:0; cursor:pointer;
+    border-radius:12px;
+    background:linear-gradient(#34363a 0%, #232529 46%, #17181b 100%);
+    color:#f2f4f6;
+    box-shadow:0 1px 0 rgba(255,255,255,.13) inset, 0 3px 6px rgba(0,0,0,.5);
+    transition:transform .04s, box-shadow .04s, filter .1s;
+    display:flex; align-items:center; justify-content:center;
+    gap:3px; padding:2px;
     touch-action:manipulation;
   }
-  .key:active,.key.down{transform:translateY(2px);box-shadow:0 0 0 #7d8994,0 1px 3px rgba(0,0,0,.4)}
-  .key .num{font:600 clamp(14px,4vw,17px)/1 "Helvetica Neue",Arial,sans-serif}
-  .key .abc{font:500 8px/1 Arial,sans-serif;letter-spacing:.09em;color:#5a6773;margin-top:3px;height:8px}
-  .key.soft{background:linear-gradient(#5a6674,#39434f);color:#e9eef3;box-shadow:0 2px 0 #222a33,0 3px 5px rgba(0,0,0,.4);min-height:clamp(28px,7.5vw,34px);font:600 clamp(10px,2.8vw,12px)/1 Arial;border-radius:8px}
-  .key.nav{background:linear-gradient(#5a6674,#39434f);color:#e9eef3;box-shadow:0 2px 0 #222a33,0 3px 5px rgba(0,0,0,.4);min-height:clamp(28px,7.5vw,34px);font-size:clamp(12px,3.4vw,15px)}
-  .key.ok{background:linear-gradient(#6d7a89,#414c59);font:600 10px/1 Arial;color:#fff}
-  .key.call{background:linear-gradient(#63c26a,#2f8b3d);color:#fff;box-shadow:0 2px 0 #1e5c28,0 3px 5px rgba(0,0,0,.4);min-height:clamp(28px,7.5vw,34px);font:600 clamp(10px,2.8vw,12px)/1 sans-serif}
-  .key.end{background:linear-gradient(#e2685f,#a8322a);color:#fff;box-shadow:0 2px 0 #6f1d17,0 3px 5px rgba(0,0,0,.4);min-height:clamp(28px,7.5vw,34px);font:600 clamp(10px,2.8vw,12px)/1 sans-serif}
-  .navpad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:2px}
+  .key:active,.key.down{transform:translateY(2px);filter:brightness(1.45);
+    box-shadow:0 1px 0 rgba(255,255,255,.1) inset, 0 1px 2px rgba(0,0,0,.5)}
+  .key .num{font:600 clamp(15px,4.4vw,19px)/1 "Helvetica Neue",Arial,sans-serif}
+  /* 字母跟數字同一行、貼著數字的基線，右排是 def3 / mno6 / wxyz9 */
+  .key .abc{font:500 clamp(8px,2.3vw,10px)/1 Arial,sans-serif;letter-spacing:.02em;color:#b9bfc6;
+            align-self:center;transform:translateY(.3em)}
+  .key svg{width:clamp(14px,4vw,18px);height:clamp(14px,4vw,18px);display:block}
+
+  /* 破折號軟鍵 */
+  .key.soft::after{content:"";width:38%;height:3px;border-radius:2px;background:#e9edf1}
+  /* 通話 / 結束：機身鍵是黑的，只有圖示有顏色 */
+  .key.call svg{fill:#3ddc57}
+  .key.end  svg{fill:#ff4d43; transform:rotate(133deg)}
+
+  /* 方向鍵：外圈是 4 向，中間白框是確定 */
+  .dpad{
+    grid-column:2; grid-row:1 / span 2;
+    border-radius:22px;
+    background:linear-gradient(#2b2d31 0%, #1b1d20 55%, #121316 100%);
+    box-shadow:0 1px 0 rgba(255,255,255,.13) inset, 0 3px 8px rgba(0,0,0,.55);
+    display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,1fr);
+    padding:6px;
+  }
+  .dpad button{
+    border:0;background:transparent;cursor:pointer;padding:0;
+    color:rgba(255,255,255,.30);
+    font-size:clamp(9px,2.6vw,11px); line-height:1;
+    display:flex;align-items:center;justify-content:center;
+    touch-action:manipulation; border-radius:8px;
+  }
+  .dpad button:active,.dpad button.down{background:rgba(255,255,255,.14);color:#fff}
+  .dpad .u{grid-area:1/2} .dpad .l{grid-area:2/1} .dpad .r{grid-area:2/3} .dpad .d{grid-area:3/2}
+  .dpad .ok{
+    grid-area:2/2; border:2px solid #f4f6f8; border-radius:26%;
+    color:transparent; background:#141518;
+    aspect-ratio:1; height:100%; width:auto; margin:0 auto;
+  }
+  .dpad .ok:active,.dpad .ok.down{background:#3a3d42}
 
   /* ---------- 說明 ---------- */
-  .hint{
-    display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-    gap:8px 22px; max-width:660px; width:100%;
-    font-size:12px;color:#8b949e;
-  }
+  .hint{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+        gap:8px 22px;max-width:660px;width:100%;font-size:12px;color:#8b949e}
   .hint div{display:flex;gap:8px;align-items:baseline}
-  kbd{
-    background:#21262d;border:1px solid #30363d;border-bottom-width:2px;
-    border-radius:5px;padding:1px 6px;font:11px/1.6 ui-monospace,Menlo,monospace;color:#c9d1d9;
-    white-space:nowrap;
-  }
+  kbd{background:#21262d;border:1px solid #30363d;border-bottom-width:2px;border-radius:5px;
+      padding:1px 6px;font:11px/1.6 ui-monospace,Menlo,monospace;color:#c9d1d9;white-space:nowrap}
   .foot{font-size:11.5px;color:#6e7681;text-align:center;line-height:1.8}
-  a{color:#58a6ff}
 
-  /* 手機：說明改小，鍵盤提示用不到（沒有實體鍵盤）*/
-  @media (max-width:560px){
-    body{gap:14px; padding-top:calc(14px + env(safe-area-inset-top))}
-    h1,.sub,.hint{display:none}      /* 手機上把版面留給機身，鍵盤提示也用不到 */
-    .foot{font-size:11px}
-  }
-  /* 加到主畫面後的獨立視窗：只留機身 */
-  @media (display-mode:standalone){
+  /* ---------- 手機：整支填滿視窗，上下不留白 ---------- */
+  @media (max-width:700px){
+    body{
+      height:100vh; height:100dvh;
+      padding:0; gap:0; overflow:hidden; justify-content:stretch;
+    }
     h1,.sub,.hint,.foot{display:none}
-    body{gap:0;justify-content:center}
+    .phone{
+      max-width:none; height:100%; border-radius:0;
+      padding:
+        calc(6px + env(safe-area-inset-top)) calc(8px + env(safe-area-inset-right))
+        calc(8px + env(safe-area-inset-bottom)) calc(8px + env(safe-area-inset-left));
+      box-shadow:none;
+    }
+    .cam{margin:2px auto 4px}
+    .brandbar{padding:0 0 6px}
+    /* basis 0 -> 兩塊的高度純粹來自剩餘空間，量測時不會跟內容互相牽制 */
+    .screenslot{flex:1 1 0%;min-height:0}
+    .keys{flex:1.15 1 0%;min-height:0;margin-top:10px;
+          grid-template-rows:repeat(6,1fr);--gap:6px}
   }
-  body.nogrid .lcdgrid{opacity:0}
 </style>
 </head>
 <body>
 
 <h1>Nokia 1280 Launcher · 網頁版</h1>
-<p class="sub">96×68 單色 LCD 模擬 · 逐像素二值化渲染 · 原生 JS，零依賴、可離線<br>點畫面上的按鍵，或用實體鍵盤操作</p>
+<p class="sub">128×112 單色 LCD 模擬 · 逐像素二值化渲染 · 原生 JS，零依賴、可離線<br>點畫面上的按鍵，或用實體鍵盤操作</p>
 
 <div class="phone" id="phone">
-  <div class="earpiece"></div>
+  <div class="cam"></div>
   <div class="brandbar"><span>NOKIA</span></div>
 
-  <div class="bezel" id="bezel">
-    <div class="screenwrap">
-      <canvas id="lcd"></canvas>
-      <div class="lcdgrid"></div>
-      <div class="glass"></div>
+  <div class="screenslot" id="screenslot">
+    <div class="bezel" id="bezel">
+      <div class="screenwrap">
+        <canvas id="lcd"></canvas>
+        <div class="lcdgrid"></div>
+        <div class="glass"></div>
+      </div>
     </div>
   </div>
 
   <div class="keys">
-    <div class="row">
-      <button class="key soft" data-k="soft1">左軟鍵</button>
-      <button class="key nav" data-k="up">▲</button>
-      <button class="key soft" data-k="soft2">右軟鍵</button>
+    <button class="key soft" data-k="soft1" aria-label="左軟鍵"></button>
+    <div class="dpad" id="dpad">
+      <button class="u" data-k="up">▲</button>
+      <button class="l" data-k="left">◀</button>
+      <button class="ok" data-k="ok">OK</button>
+      <button class="r" data-k="right">▶</button>
+      <button class="d" data-k="down">▼</button>
     </div>
-    <div class="row">
-      <button class="key nav" data-k="left">◀</button>
-      <button class="key nav ok" data-k="ok">OK</button>
-      <button class="key nav" data-k="right">▶</button>
-    </div>
-    <div class="row">
-      <button class="key call" data-k="call">通話</button>
-      <button class="key nav" data-k="down">▼</button>
-      <button class="key end" data-k="end">結束</button>
-    </div>
+    <button class="key soft" data-k="soft2" aria-label="右軟鍵"></button>
 
-    <div class="row" style="margin-top:6px">
-      <button class="key" data-k="1"><span class="num">1</span><span class="abc">&nbsp;</span></button>
-      <button class="key" data-k="2"><span class="num">2</span><span class="abc">ABC</span></button>
-      <button class="key" data-k="3"><span class="num">3</span><span class="abc">DEF</span></button>
-    </div>
-    <div class="row">
-      <button class="key" data-k="4"><span class="num">4</span><span class="abc">GHI</span></button>
-      <button class="key" data-k="5"><span class="num">5</span><span class="abc">JKL</span></button>
-      <button class="key" data-k="6"><span class="num">6</span><span class="abc">MNO</span></button>
-    </div>
-    <div class="row">
-      <button class="key" data-k="7"><span class="num">7</span><span class="abc">PQRS</span></button>
-      <button class="key" data-k="8"><span class="num">8</span><span class="abc">TUV</span></button>
-      <button class="key" data-k="9"><span class="num">9</span><span class="abc">WXYZ</span></button>
-    </div>
-    <div class="row">
-      <button class="key" data-k="*"><span class="num">✱</span><span class="abc">+</span></button>
-      <button class="key" data-k="0"><span class="num">0</span><span class="abc">SPACE</span></button>
-      <button class="key" data-k="#"><span class="num">#</span><span class="abc">abc</span></button>
-    </div>
+    <button class="key call" data-k="call" aria-label="通話">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.7.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.7.1.3 0 .7-.2 1l-2.3 2.1z"/></svg>
+    </button>
+    <button class="key end" data-k="end" aria-label="結束">
+      <svg viewBox="0 0 24 24"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.7.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.7.1.3 0 .7-.2 1l-2.3 2.1z"/></svg>
+    </button>
+
+    <button class="key" data-k="1"><span class="num">1</span></button>
+    <button class="key" data-k="2"><span class="num">2</span><span class="abc">abc</span></button>
+    <button class="key" data-k="3"><span class="abc">def</span><span class="num">3</span></button>
+
+    <button class="key" data-k="4"><span class="num">4</span><span class="abc">ghi</span></button>
+    <button class="key" data-k="5"><span class="num">5</span><span class="abc">jkl</span></button>
+    <button class="key" data-k="6"><span class="abc">mno</span><span class="num">6</span></button>
+
+    <button class="key" data-k="7"><span class="num">7</span><span class="abc">pqrs</span></button>
+    <button class="key" data-k="8"><span class="num">8</span><span class="abc">tuv</span></button>
+    <button class="key" data-k="9"><span class="abc">wxyz</span><span class="num">9</span></button>
+
+    <button class="key" data-k="*"><span class="num">✱</span>
+      <svg viewBox="0 0 24 24" fill="#b9bfc6"><path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2zm-7-2a2 2 0 0 1 4 0v2h-4V7zm2 11a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"/></svg>
+    </button>
+    <button class="key" data-k="0"><span class="num">0</span>
+      <svg viewBox="0 0 24 24" fill="#b9bfc6"><path d="M9 21h6v-1H9v1zm3-19a7 7 0 0 0-4 12.7V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.3A7 7 0 0 0 12 2z"/></svg>
+    </button>
+    <button class="key" data-k="#"><span class="num">#</span></button>
   </div>
 </div>
 
@@ -223,66 +248,37 @@
 'use strict';
 
 /* =========================================================================
- * 1. LCD 引擎 —— 96×68 單色螢幕
+ * 1. LCD 引擎 —— 128×112 單色螢幕
  *    所有繪製都畫進離屏 canvas，present() 時逐像素二值化再放大輸出
  * ========================================================================= */
-const W = 96, H = 68;
-let SCALE = 6;
+const W = 128, H = 112;
 
-const off  = document.createElement('canvas');
+const off = document.createElement('canvas');
 off.width = W; off.height = H;
 const g = off.getContext('2d', { willReadFrequently: true });
 
-const out  = document.createElement('canvas');
+const out = document.createElement('canvas');
 out.width = W; out.height = H;
 const gOut = out.getContext('2d');
 const imgOut = gOut.createImageData(W, H);
 
-const lcd  = document.getElementById('lcd');
-const vctx = lcd.getContext('2d');
+const lcd   = document.getElementById('lcd');
+const vctx  = lcd.getContext('2d');
 const bezel = document.getElementById('bezel');
+const slot  = document.getElementById('screenslot');
 
 const THEMES = [
-  { name: 'Classic',  paper: [154, 170, 130], ink: [24, 33, 18] },
-  { name: 'Blue LED', paper: [126, 178, 205], ink: [8, 32, 48] },
-  { name: 'White',    paper: [222, 226, 214], ink: [16, 16, 16] },
-  { name: 'Amber',    paper: [205, 168, 96],  ink: [40, 24, 4] }
+  { name: 'Olive',    paper: [163, 165, 43],  ink: [22, 24, 8]   },
+  { name: 'Classic',  paper: [154, 170, 130], ink: [24, 33, 18]  },
+  { name: 'Blue LED', paper: [126, 178, 205], ink: [8, 32, 48]   },
+  { name: 'White',    paper: [222, 226, 214], ink: [16, 16, 16]  },
+  { name: 'Amber',    paper: [205, 168, 96],  ink: [40, 24, 4]   }
 ];
-const OFF_PAPER = [46, 52, 44];
-
-/**
- * 版面是流體的：canvas 用 CSS 撐滿螢幕框，點陣圖解析度則依「實際顯示尺寸 × 裝置像素比」
- * 反推，讓每個 LCD 像素剛好落在整數個裝置像素上，在 Retina 手機上才不會糊。
- */
-function fitScreen() {
-  const cs = getComputedStyle(bezel);
-  const avail = bezel.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  if (avail <= 0) return;
-  const dpr = window.devicePixelRatio || 1;
-  // 每個 LCD 像素分到幾個裝置像素 —— 取整數，讓點陣不會出現寬窄不一的鋸齒
-  const res = Math.max(3, Math.min(16, Math.floor(avail * dpr / W)));
-  if (lcd.width !== W * res) {
-    lcd.width  = W * res;
-    lcd.height = H * res;
-    vctx.imageSmoothingEnabled = false;
-  }
-  const pitch = res / dpr;                      // 一個 LCD 像素的 CSS 大小
-  lcd.style.width  = (W * pitch) + 'px';
-  lcd.style.height = (H * pitch) + 'px';
-  document.documentElement.style.setProperty('--px', pitch.toFixed(4) + 'px');
-  document.body.classList.toggle('nogrid', pitch < 4);   // 太小的話格線只會變雜訊
-}
-function applyScale() {
-  document.documentElement.style.setProperty('--w', (W * SCALE + 66) + 'px');
-  fitScreen();
-}
-applyScale();
-window.addEventListener('resize', fitScreen);
-window.addEventListener('orientationchange', () => setTimeout(fitScreen, 250));
+const OFF_PAPER = [26, 28, 22];
 
 /* =========================================================================
  * 1b. 內建 5×7 點陣字型
- *     系統字型在 8px 二值化後會糊掉，所以整套字自己定義：
+ *     系統字型在這種尺寸下二值化會糊掉，所以整套字自己定義：
  *     每列格式 = 字元 + ':' + 7 列 × 5 欄的 0/1（1 = 亮點）
  * ========================================================================= */
 const FONT_DATA = [
@@ -381,9 +377,7 @@ const FONT_DATA = [
 '|:00100:00100:00100:00100:00100:00100:00100',
 '}:01100:00010:00010:00011:00010:00010:01100',
 '~:00000:00000:01001:10110:00000:00000:00000',
-'█:11111:11111:11111:11111:11111:11111:11111',
-'▸:01000:01100:01110:01111:01110:01100:01000',
-'▪:00000:01110:01110:01110:00000:00000:00000'
+'█:11111:11111:11111:11111:11111:11111:11111'
 ];
 
 const GLYPHS = Object.create(null);
@@ -392,6 +386,7 @@ const MISSING = ['11111','10001','10001','10001','10001','10001','11111'];
 
 const CW = 6;    // 字身 5px + 字距 1px
 const LH = 9;    // 行高
+const COLS = Math.floor((W - 3) / CW);   // 每行可容納字數 = 20
 
 /* --- 繪圖基本操作 --------------------------------------------------- */
 function tw(str, sc) { sc = sc || 1; return Math.max(0, str.length * CW * sc - sc); }
@@ -401,9 +396,11 @@ function frame() {                       // 清成白底（白=紙，黑=墨）
   g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
   g.fillStyle = '#000';
 }
-function text(str, x, y, sc) {
+/** xor=true 時用 difference 合成，黑底上就會畫出白字 */
+function text(str, x, y, sc, xor) {
   sc = sc || 1;
-  g.fillStyle = '#000';
+  if (xor) { g.save(); g.globalCompositeOperation = 'difference'; g.fillStyle = '#fff'; }
+  else g.fillStyle = '#000';
   let cx = x;
   for (let i = 0; i < str.length; i++) {
     const gl = GLYPHS[str[i]] || MISSING;
@@ -414,17 +411,18 @@ function text(str, x, y, sc) {
     }
     cx += CW * sc;
   }
+  if (xor) g.restore();
 }
-function ctext(str, y, sc) { text(str, Math.round((W - tw(str, sc)) / 2), y, sc); }
-function rtext(str, y, sc) { text(str, W - 1 - tw(str, sc), y, sc); }
+function ctext(str, y, sc, xor) { text(str, Math.round((W - tw(str, sc)) / 2), y, sc, xor); }
+function rtext(str, y, sc, xor) { text(str, W - 2 - tw(str, sc), y, sc, xor); }
 function fit(str, px) { return str.slice(0, Math.max(0, Math.floor((px + 1) / CW))); }
 function rect(x, y, w, h) { g.fillStyle = '#000'; g.fillRect(x, y, w, h); }
 function hline(y) { rect(0, y, W, 1); }
-function box(x, y, w, h) {               // 空心框
+function box(x, y, w, h) {
   rect(x, y, w, 1); rect(x, y + h - 1, w, 1);
   rect(x, y, 1, h); rect(x + w - 1, y, 1, h);
 }
-function invert(x, y, w, h) {            // 反白（difference 合成）
+function invert(x, y, w, h) {
   g.save();
   g.globalCompositeOperation = 'difference';
   g.fillStyle = '#fff';
@@ -432,7 +430,7 @@ function invert(x, y, w, h) {            // 反白（difference 合成）
   g.restore();
   g.fillStyle = '#000';
 }
-function bitmap(rows, x, y) {            // 用 "0101" 字串陣列畫小圖示
+function bitmap(rows, x, y) {
   g.fillStyle = '#000';
   for (let r = 0; r < rows.length; r++)
     for (let c = 0; c < rows[r].length; c++)
@@ -441,7 +439,7 @@ function bitmap(rows, x, y) {            // 用 "0101" 字串陣列畫小圖示
 
 function present() {
   const paper = S.power ? THEMES[S.theme].paper : OFF_PAPER;
-  const ink   = S.power ? THEMES[S.theme].ink   : [38, 43, 36];
+  const ink   = S.power ? THEMES[S.theme].ink   : [34, 36, 30];
   const src = g.getImageData(0, 0, W, H).data;
   const dst = imgOut.data;
   for (let i = 0, n = W * H; i < n; i++) {
@@ -453,8 +451,45 @@ function present() {
   gOut.putImageData(imgOut, 0, 0);
   vctx.imageSmoothingEnabled = false;
   vctx.drawImage(out, 0, 0, W, H, 0, 0, lcd.width, lcd.height);
-  bezel.classList.toggle('lit', S.power);
 }
+
+/**
+ * 版面是流體的：canvas 用 JS 給定尺寸，點陣圖解析度依「可用尺寸 × 裝置像素比」
+ * 反推並取整數，讓每個 LCD 像素剛好落在整數個裝置像素上，Retina 上才不會出現
+ * 寬窄不一的鋸齒。手機上高度也要納入計算，否則螢幕會把鍵盤擠出視窗。
+ */
+function fitScreen() {
+  const cs = getComputedStyle(bezel);
+  const padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+  const padY = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
+  const availW = slot.clientWidth - padX;
+  // 桌機時 slot 的高度是由內容撐出來的，拿來當限制會互相牽制，所以只在手機版用
+  const mobile = window.matchMedia('(max-width: 700px)').matches;
+  const availH = mobile ? slot.clientHeight - padY : Infinity;
+  if (availW <= 0) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const res = Math.max(2, Math.min(16, Math.min(
+    Math.floor(availW * dpr / W),
+    Math.floor(availH * dpr / H)
+  )));
+  if (lcd.width !== W * res) {
+    lcd.width  = W * res;
+    lcd.height = H * res;
+    vctx.imageSmoothingEnabled = false;
+  }
+  const pitch = res / dpr;
+  lcd.style.width  = (W * pitch) + 'px';
+  lcd.style.height = (H * pitch) + 'px';
+  document.documentElement.style.setProperty('--px', pitch.toFixed(4) + 'px');
+  document.body.classList.toggle('nogrid', pitch < 3);
+}
+function applyScale() {
+  document.documentElement.style.setProperty('--w', (W * SCALE + 36) + 'px');
+  fitScreen();
+}
+window.addEventListener('resize', fitScreen);
+window.addEventListener('orientationchange', () => setTimeout(fitScreen, 250));
 
 /* =========================================================================
  * 2. 音效 —— Web Audio 單音方波，模擬單聲道鈴聲
@@ -486,21 +521,20 @@ const TUNE = [
   [493.88, .13], [440.00, .13], [277.18, .26], [329.63, .26],
   [440.00, .46]
 ];
-function playTune() {
-  let t = 0;
-  for (const [f, d] of TUNE) { tone(f, d * 0.9, t, 0.055); t += d; }
-}
+function playTune() { let t = 0; for (const [f, d] of TUNE) { tone(f, d * 0.9, t, 0.055); t += d; } }
 
 /* =========================================================================
  * 3. 全域狀態
  * ========================================================================= */
+let SCALE = 3;                 // 桌機的機身寬度倍率
 const S = {
   power: false, boot: 0,
   scr: 'idle', stack: [],
   theme: 0, sound: true,
   menuIdx: 0, listIdx: 0,
   dial: '',
-  signal: 4, battery: 4,
+  carrier: 'LOCAS',
+  signal: 4, battery: 94,
   toast: null, toastUntil: 0
 };
 
@@ -515,19 +549,21 @@ const MENU = [
   { id: 'settings', label: 'Settings',   icon: ['0010100','1111111','0111110','1101011','0111110','1111111','0010100'] }
 ];
 
+const WIFI = ['0111110','1000001','0011100','0100010','0001000'];
+
 const CONTACTS = [
-  { name: 'Mum',        num: '+81 90 1111 2222' },
-  { name: 'Dad',        num: '+81 90 3333 4444' },
-  { name: 'Locas HQ',   num: '+81 3 5555 6666' },
-  { name: 'Rex',        num: '+886 912 345 678' },
-  { name: 'Pizza',      num: '0120 555 090' },
-  { name: 'Voicemail',  num: '1571' }
+  { name: 'Mum',       num: '+81 90 1111 2222' },
+  { name: 'Dad',       num: '+81 90 3333 4444' },
+  { name: 'Locas HQ',  num: '+81 3 5555 6666' },
+  { name: 'Rex',       num: '+886 912 345 678' },
+  { name: 'Pizza',     num: '0120 555 090' },
+  { name: 'Voicemail', num: '1571' }
 ];
 
 const MESSAGES = [
-  { from: 'Mum',    body: 'Are you coming home for dinner tonight?' },
-  { from: 'Locas',  body: 'Your OTP is 4821. Do not share this code.' },
-  { from: 'Nokia',  body: 'Welcome to Nokia 1280. Connecting People.' }
+  { from: 'Mum',   body: 'Are you coming home for dinner tonight?' },
+  { from: 'Locas', body: 'Your OTP is 4821. Do not share this code.' },
+  { from: 'Nokia', body: 'Welcome to Nokia 1280. Connecting People.' }
 ];
 
 const CALLLOG = [
@@ -540,47 +576,46 @@ const CALLLOG = [
 /* =========================================================================
  * 4. 共用畫面元件
  * ========================================================================= */
+const SOFT_LINE = H - 11;      // 101
+const SOFT_Y    = H - 9;       // 103
+
 function statusBar() {
-  // 訊號格
+  // 天線 + 訊號格
+  rect(0, 0, 1, 1); rect(2, 0, 1, 1); rect(1, 1, 1, 2);
   for (let i = 0; i < 4; i++) {
     const h = 2 + i * 2;
-    if (i < S.signal) rect(1 + i * 3, 8 - h, 2, h);
-    else rect(1 + i * 3, 7, 2, 1);
+    if (i < S.signal) rect(4 + i * 3, 8 - h, 2, h);
+    else rect(4 + i * 3, 7, 2, 1);
   }
-  // 電池
-  const bx = W - 13;
-  box(bx, 1, 11, 6);
-  rect(bx + 11, 3, 1, 2);
-  rect(bx + 2, 3, Math.max(1, S.battery * 2), 2);
-  // 電信商
-  const op = 'LOCAS';
-  text(op, Math.round((W - tw(op)) / 2), 0);
+  bitmap(WIFI, 96, 1);                       // Wi-Fi
+  const pct = String(Math.min(99, S.battery));
+  box(107, 0, 16, 9);                        // 電池外框
+  rect(123, 3, 2, 3);                        // 電池正極
+  text(pct, 109, 1);
 }
 
-function softBar(l, r) {
-  hline(H - 10);
-  if (l) text(l, 1, H - 8);
-  if (r) text(r, W - 1 - tw(r), H - 8);
+/** 首頁的三個軟鍵；一般畫面只用左右兩個 */
+function softBar(l, c, r) {
+  hline(SOFT_LINE);
+  if (l) text(l, 1, SOFT_Y);
+  if (c) text(c, Math.round((W - tw(c)) / 2), SOFT_Y);
+  if (r) text(r, W - 1 - tw(r), SOFT_Y);
 }
+function softBar2(l, r) { softBar(l, null, r); }
 
-function titleBar(t) {
-  ctext(t, 10);
-  invert(0, 9, W, 10);
-}
+function titleBar(t) { ctext(t, 11); invert(0, 10, W, 10); }
 
-/** 通用清單 */
 function listView(items, idx, top, rows) {
   let start = Math.max(0, Math.min(idx - (rows - 1), items.length - rows));
   if (start < 0) start = 0;
   for (let i = 0; i < rows && start + i < items.length; i++) {
     const it = items[start + i];
     const y = top + i * LH;
-    let x = 2;
-    if (it.icon) { bitmap(it.icon, 2, y + 1); x = 11; }
-    text(fit(it.label, W - x - 6), x, y + 1);
+    let x = 3;
+    if (it.icon) { bitmap(it.icon, 3, y + 1); x = 13; }
+    text(fit(it.label, W - x - 7), x, y + 1);
     if (start + i === idx) invert(0, y, W - 4, LH);
   }
-  // 捲軸
   if (items.length > rows) {
     const trackH = rows * LH;
     box(W - 3, top, 3, trackH);
@@ -590,14 +625,12 @@ function listView(items, idx, top, rows) {
   }
 }
 
-const COLS = Math.floor((W - 3) / CW);   // 每行可容納字數 = 15
-
 function wrap(str, cols) {
   const words = str.split(/\s+/), lines = [];
   let cur = '';
   for (const w of words) {
-    if (!cur.length) { cur = w; }
-    else if ((cur + ' ' + w).length <= cols) { cur += ' ' + w; }
+    if (!cur.length) cur = w;
+    else if ((cur + ' ' + w).length <= cols) cur += ' ' + w;
     else { lines.push(cur); cur = w; }
     while (cur.length > cols) { lines.push(cur.slice(0, cols)); cur = cur.slice(cols); }
   }
@@ -609,16 +642,16 @@ function toast(msg) { S.toast = msg; S.toastUntil = Date.now() + 1400; }
 function drawToast() {
   if (!S.toast || Date.now() > S.toastUntil) { S.toast = null; return; }
   const lines = wrap(S.toast, COLS - 2);
-  const h = lines.length * LH + 7;
+  const h = lines.length * LH + 8;
   const y = Math.round((H - h) / 2);
-  g.fillStyle = '#fff'; g.fillRect(2, y, W - 4, h);
-  box(2, y, W - 4, h);
-  lines.forEach((l, i) => ctext(l, y + 4 + i * LH));
+  g.fillStyle = '#fff'; g.fillRect(4, y, W - 8, h);
+  box(4, y, W - 8, h);
+  lines.forEach((l, i) => ctext(l, y + 5 + i * LH));
 }
 
-function go(scr)   { S.stack.push(S.scr); S.scr = scr; S.listIdx = 0; if (SCR[scr].enter) SCR[scr].enter(); }
-function back()    { S.scr = S.stack.pop() || 'idle'; if (SCR[S.scr].reenter) SCR[S.scr].reenter(); }
-function home()    { S.stack.length = 0; S.scr = 'idle'; }
+function go(scr) { S.stack.push(S.scr); S.scr = scr; S.listIdx = 0; if (SCR[scr].enter) SCR[scr].enter(); }
+function back()  { S.scr = S.stack.pop() || 'idle'; if (SCR[S.scr].reenter) SCR[S.scr].reenter(); }
+function home()  { S.stack.length = 0; S.scr = 'idle'; }
 
 function clock2() {
   const d = new Date();
@@ -628,7 +661,7 @@ function dateStr() {
   const d = new Date();
   const wd = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
   const mo = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()];
-  return wd + ' ' + d.getDate() + ' ' + mo;
+  return wd + ', ' + d.getDate() + ' ' + mo;
 }
 
 /* =========================================================================
@@ -659,9 +692,7 @@ const Typer = {
     if (this.lastKey === k && now - this.lastAt < 850) {
       this.cycle = (this.cycle + 1) % set.length;
       this.text = this.text.slice(0, -1);
-    } else {
-      this.cycle = 0;
-    }
+    } else this.cycle = 0;
     let ch = set[this.cycle];
     const m = MODES[this.mode];
     if (m === 'ABC') ch = ch.toUpperCase();
@@ -678,15 +709,15 @@ const Typer = {
 };
 
 /* =========================================================================
- * 6. Snake II
+ * 6. Snake
  * ========================================================================= */
 const Snake = {
-  CELL: 3, X0: 1, Y0: 10, COLS: 31, ROWS: 15,
+  CELL: 3, X0: 1, Y0: 12, COLS: 42, ROWS: 29,
   body: [], dir: [1, 0], next: [1, 0], food: null,
   score: 0, best: Number(localStorage.getItem('n1280.snake') || 0),
   state: 'ready', acc: 0, step: 140,
   start() {
-    this.body = [[6, 7], [5, 7], [4, 7]];
+    this.body = [[8, 14], [7, 14], [6, 14]];
     this.dir = [1, 0]; this.next = [1, 0];
     this.score = 0; this.step = 140; this.acc = 0;
     this.state = 'run'; this.place();
@@ -717,15 +748,12 @@ const Snake = {
       } else this.body.pop();
     }
   },
-  turn(d) {
-    if (d[0] === -this.dir[0] && d[1] === -this.dir[1]) return;
-    this.next = d;
-  },
+  turn(d) { if (!(d[0] === -this.dir[0] && d[1] === -this.dir[1])) this.next = d; },
   draw() {
     if (this.state === 'ready') {
-      ctext('SNAKE', 16, 2);
-      ctext('High ' + this.best, 36);
-      ctext('Press OK', 47);
+      ctext('SNAKE', 26, 2);
+      ctext('High ' + this.best, 52);
+      ctext('Press OK', 68);
       return;
     }
     const C = this.CELL;
@@ -736,13 +764,13 @@ const Snake = {
       rect(this.X0 + f[0] * C + 1, this.Y0 + f[1] * C, 1, C);
       rect(this.X0 + f[0] * C, this.Y0 + f[1] * C + 1, C, 1);
     }
-    text(String(this.score), 1, 0);
+    text('Score ' + this.score, 2, 1);
     if (this.state === 'over') {
-      const bw = 66, bh = 27, bx = (W - bw) >> 1, by = 17;
+      const bw = 80, bh = 30, bx = (W - bw) >> 1, by = 34;
       g.fillStyle = '#fff'; g.fillRect(bx, by, bw, bh);
       box(bx, by, bw, bh);
-      ctext('GAME OVER', by + 5);
-      ctext('Score ' + this.score, by + 15);
+      ctext('GAME OVER', by + 6);
+      ctext('Score ' + this.score, by + 17);
     }
   }
 };
@@ -782,40 +810,47 @@ const Calc = {
 };
 
 /* =========================================================================
- * 8. 各畫面：draw(now) / key(k)
+ * 8. 各畫面
  * ========================================================================= */
-let composeTarget = 'compose';
-let viewMsg = 0, viewContact = 0;
-let callStart = 0, callWho = '';
+let composeTarget = '', viewMsg = 0, viewContact = 0, callStart = 0, callWho = '';
+
+/** 首頁那條右側斜切的黑色時間帶 */
+function clockRibbon(timeStr) {
+  const TOP = 66, ROWS = 18, X0 = 60;
+  rect(0, TOP, X0, 1);                       // 左側分隔線
+  for (let i = 0; i < ROWS; i++) {           // 斜切色塊
+    const y = TOP + i, x = X0 - i;
+    rect(x, y, W - x, 1);
+  }
+  text(timeStr, W - 6 - tw(timeStr, 2), TOP + 2, 2, true);   // XOR -> 白字
+}
 
 const SCR = {
 
-  /* ---- 待機 ---- */
+  /* ---- 待機（照 launcher 首頁排版）---- */
   idle: {
     draw() {
       statusBar();
       if (S.dial) {
-        if (S.dial.length <= 7) ctext(S.dial, 24, 2);
-        else { ctext(S.dial.slice(0, 15), 24); ctext(S.dial.slice(15, 30), 34); }
-        softBar('Call', 'Clear');
+        const sc = S.dial.length <= 10 ? 2 : 1;
+        ctext(S.dial.slice(-20), 40, sc);
+        softBar2('Call', 'Clear');
       } else {
-        ctext(clock2(), 20, 2);
-        ctext(dateStr(), 42);
-        softBar('Menu', 'Names');
+        ctext(fit(S.carrier, W - 4), 28, 2);
+        ctext(dateStr(), 48);
+        clockRibbon(clock2());
+        softBar('Go to', 'Menu', 'Setting');
       }
     },
     key(k) {
       if (/^[0-9*#]$/.test(k)) { S.dial += (k === '*' ? '+' : k); beep(); return; }
-      if (k === 'soft1') { if (S.dial) { doCall(S.dial); } else { S.menuIdx = 0; go('menu'); } return; }
-      if (k === 'soft2' || k === 'clear') {
-        if (S.dial) { S.dial = S.dial.slice(0, -1); }
-        else go('contacts');
-        return;
-      }
-      if (k === 'ok') { if (S.dial) doCall(S.dial); else { S.menuIdx = 0; go('menu'); } return; }
-      if (k === 'call') { doCall(S.dial || CALLLOG[0].name); return; }
-      if (k === 'up')   { go('torch'); return; }
-      if (k === 'down') { go('contacts'); return; }
+      if (k === 'soft1') { if (S.dial) doCall(S.dial); else go('contacts'); return; }
+      if (k === 'soft2') { if (S.dial) { S.dial = S.dial.slice(0, -1); } else go('settings'); return; }
+      if (k === 'clear') { if (S.dial) S.dial = S.dial.slice(0, -1); return; }
+      if (k === 'ok')    { if (S.dial) doCall(S.dial); else { S.menuIdx = 0; go('menu'); } return; }
+      if (k === 'call')  { doCall(S.dial || CALLLOG[0].name); return; }
+      if (k === 'up')    { go('torch'); return; }
+      if (k === 'down')  { go('contacts'); return; }
     }
   },
 
@@ -823,9 +858,8 @@ const SCR = {
   menu: {
     draw() {
       titleBar('Menu');
-      listView(MENU, S.menuIdx, 21, 4);
-      text((S.menuIdx + 1) + '/' + MENU.length, 1, 0);
-      softBar('Select', 'Back');
+      listView(MENU, S.menuIdx, 23, 8);
+      softBar2('Select', 'Back');
     },
     key(k) {
       if (k === 'up')   { S.menuIdx = (S.menuIdx + MENU.length - 1) % MENU.length; beep(); }
@@ -840,13 +874,11 @@ const SCR = {
   messages: {
     draw() {
       titleBar('Messages');
-      const items = [{ label: 'Inbox (' + MESSAGES.length + ')' }, { label: 'Write message' }];
-      listView(items, S.listIdx, 21, 4);
-      softBar('Select', 'Back');
+      listView([{ label: 'Inbox (' + MESSAGES.length + ')' }, { label: 'Write message' }], S.listIdx, 23, 8);
+      softBar2('Select', 'Back');
     },
     key(k) {
-      if (k === 'up')   { S.listIdx = (S.listIdx + 1) % 2; beep(); }
-      if (k === 'down') { S.listIdx = (S.listIdx + 1) % 2; beep(); }
+      if (k === 'up' || k === 'down') { S.listIdx = (S.listIdx + 1) % 2; beep(); }
       if (k === 'ok' || k === 'soft1') {
         blip();
         if (S.listIdx === 0) go('inbox');
@@ -859,8 +891,8 @@ const SCR = {
   inbox: {
     draw() {
       titleBar('Inbox');
-      listView(MESSAGES.map(m => ({ label: m.from })), S.listIdx, 21, 4);
-      softBar('Read', 'Back');
+      listView(MESSAGES.map(m => ({ label: m.from })), S.listIdx, 23, 8);
+      softBar2('Read', 'Back');
     },
     key(k) {
       if (k === 'up')   { S.listIdx = (S.listIdx + MESSAGES.length - 1) % MESSAGES.length; beep(); }
@@ -878,13 +910,13 @@ const SCR = {
       const m = MESSAGES[viewMsg];
       titleBar(fit(m.from, W - 6));
       const lines = wrap(m.body, COLS);
-      for (let i = 0; i < 4 && i + this.scroll < lines.length; i++)
-        text(lines[i + this.scroll], 2, 21 + i * LH);
-      softBar('Reply', 'Back');
+      for (let i = 0; i < 8 && i + this.scroll < lines.length; i++)
+        text(lines[i + this.scroll], 3, 23 + i * LH);
+      softBar2('Reply', 'Back');
     },
     key(k) {
       const lines = wrap(MESSAGES[viewMsg].body, COLS);
-      if (k === 'down' && this.scroll < lines.length - 4) { this.scroll++; beep(); }
+      if (k === 'down' && this.scroll < lines.length - 8) { this.scroll++; beep(); }
       if (k === 'up' && this.scroll > 0) { this.scroll--; beep(); }
       if (k === 'soft1' || k === 'ok') { Typer.reset(''); composeTarget = MESSAGES[viewMsg].from; blip(); go('compose'); }
       if (k === 'soft2' || k === 'clear') back();
@@ -894,24 +926,21 @@ const SCR = {
 
   compose: {
     draw() {
-      text(MODES[Typer.mode], 1, 0);
-      rtext(String(Typer.text.length), 0);
-      hline(9);
+      text(MODES[Typer.mode], 1, 1);
+      rtext(String(Typer.text.length), 1);
+      hline(10);
       const lines = wrap(Typer.text + '█', COLS);
-      const start = Math.max(0, lines.length - 5);
+      const start = Math.max(0, lines.length - 9);
       for (let i = start; i < lines.length; i++)
-        text(lines[i], 2, 12 + (i - start) * LH);
-      softBar(Typer.text ? 'Send' : 'Abc', 'Clear');
+        text(lines[i], 3, 13 + (i - start) * LH);
+      softBar2(Typer.text ? 'Send' : 'Abc', 'Clear');
     },
     key(k) {
       if (k === '#') { Typer.nextMode(); beep(); return; }
       if (Typer.key(k)) { beep(); return; }
-      if (k === 'clear' || k === 'soft2') {
-        if (!Typer.del()) back();
-        return;
-      }
+      if (k === 'clear' || k === 'soft2') { if (!Typer.del()) back(); return; }
       if (k === 'soft1' || k === 'ok') {
-        if (Typer.text) { blip(); toast('Message sent'); Typer.reset(''); setTimeout(() => back(), 900); }
+        if (Typer.text) { blip(); toast('Message sent'); Typer.reset(''); setTimeout(back, 900); }
         return;
       }
       if (k === 'end') home();
@@ -922,8 +951,8 @@ const SCR = {
   contacts: {
     draw() {
       titleBar('Contacts');
-      listView(CONTACTS.map(c => ({ label: c.name })), S.listIdx, 21, 4);
-      softBar('View', 'Back');
+      listView(CONTACTS.map(c => ({ label: c.name })), S.listIdx, 23, 8);
+      softBar2('View', 'Back');
     },
     key(k) {
       if (k === 'up')   { S.listIdx = (S.listIdx + CONTACTS.length - 1) % CONTACTS.length; beep(); }
@@ -939,9 +968,9 @@ const SCR = {
     draw() {
       const c = CONTACTS[viewContact];
       titleBar('Details');
-      ctext(c.name, 24);
-      ctext(c.num, 36);
-      softBar('Call', 'Back');
+      ctext(fit(c.name, W - 4), 34, 2);
+      ctext(c.num, 60);
+      softBar2('Call', 'Back');
     },
     key(k) {
       if (k === 'soft1' || k === 'ok' || k === 'call') doCall(CONTACTS[viewContact].name);
@@ -955,8 +984,8 @@ const SCR = {
     draw() {
       titleBar('Call log');
       const marks = { out: '>', in: '<', missed: '!' };
-      listView(CALLLOG.map(c => ({ label: marks[c.t] + ' ' + c.name })), S.listIdx, 21, 4);
-      softBar('Call', 'Back');
+      listView(CALLLOG.map(c => ({ label: marks[c.t] + ' ' + c.name + '  ' + c.when })), S.listIdx, 23, 8);
+      softBar2('Call', 'Back');
     },
     key(k) {
       if (k === 'up')   { S.listIdx = (S.listIdx + CALLLOG.length - 1) % CALLLOG.length; beep(); }
@@ -967,15 +996,14 @@ const SCR = {
     }
   },
 
-  /* ---- 通話中 ---- */
   calling: {
     draw() {
       statusBar();
-      ctext('Calling...', 16);
-      ctext(fit(callWho, W - 2), 28);
+      ctext('Calling...', 26);
+      ctext(fit(callWho, W - 4), 40);
       const s = Math.floor((Date.now() - callStart) / 1000);
-      ctext(String((s / 60) | 0).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'), 42, 2);
-      softBar('', 'End');
+      ctext(String((s / 60) | 0).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'), 60, 2);
+      softBar2('', 'End');
     },
     key(k) { if (k === 'end' || k === 'soft2' || k === 'clear' || k === 'ok') { tone(440, .1); S.dial = ''; back(); } }
   },
@@ -986,9 +1014,9 @@ const SCR = {
     reenter() { Snake.state = 'ready'; },
     draw() {
       Snake.draw();
-      if (Snake.state === 'ready')      softBar('Start', 'Back');
-      else if (Snake.state === 'over')  softBar('Again', 'Back');
-      else                              softBar('', 'Pause');
+      if (Snake.state === 'ready')     softBar2('Start', 'Back');
+      else if (Snake.state === 'over') softBar2('Again', 'Back');
+      else                             softBar2('', 'Pause');
     },
     key(k) {
       if (Snake.state === 'run') {
@@ -996,7 +1024,7 @@ const SCR = {
         if (k === 'down' || k === '8')  Snake.turn([0, 1]);
         if (k === 'left' || k === '4')  Snake.turn([-1, 0]);
         if (k === 'right' || k === '6') Snake.turn([1, 0]);
-        if (k === 'soft2' || k === 'clear' || k === 'ok') { Snake.state = 'ready'; }
+        if (k === 'soft2' || k === 'clear' || k === 'ok') Snake.state = 'ready';
         if (k === 'end') home();
         return;
       }
@@ -1010,9 +1038,9 @@ const SCR = {
   clock: {
     draw() {
       titleBar('Clock');
-      ctext(clock2(), 24, 2);
-      ctext(dateStr(), 45);
-      softBar('', 'Back');
+      ctext(clock2(), 40, 2);
+      ctext(dateStr(), 66);
+      softBar2('', 'Back');
     },
     key(k) { if (k === 'soft2' || k === 'clear' || k === 'ok') back(); if (k === 'end') home(); }
   },
@@ -1022,11 +1050,12 @@ const SCR = {
     draw() {
       titleBar('Calculator');
       const line = (Calc.op ? Calc.op + ' ' : '') + Calc.cur;
-      rtext(line.slice(-15), 25);
-      hline(36);
-      text('* = operator', 2, 40);
-      text('# = decimal', 2, 49);
-      softBar('=', 'Clear');
+      rtext(line.slice(-20), 32, line.length <= 10 ? 2 : 1);
+      hline(56);
+      text('* = operator', 3, 62);
+      text('# = decimal', 3, 72);
+      text('OK = equals', 3, 82);
+      softBar2('=', 'Clear');
     },
     key(k) {
       if (/^[0-9]$/.test(k)) { Calc.digit(k); beep(); return; }
@@ -1045,13 +1074,13 @@ const SCR = {
   /* ---- 手電筒 ---- */
   torch: {
     draw() {
-      // 光束：由燈頭向下擴散的三角形
-      for (let i = 0; i < 26; i++) rect(48 - i, 24 + i, 1 + i * 2, 1);
-      rect(42, 14, 12, 10);
-      rect(45, 10, 6, 4);
-      invert(0, 9, W, H - 19);   // 反白 -> 白底黑光束變成黑底亮光束
-      ctext('TORCH ON', 0);
-      softBar('', 'Off');
+      const cx = W >> 1;
+      for (let i = 0; i < 40; i++) rect(cx - i, 34 + i, 1 + i * 2, 1);   // 光束
+      rect(cx - 7, 20, 14, 14);                                          // 燈頭
+      rect(cx - 4, 15, 8, 5);
+      invert(0, 10, W, SOFT_LINE - 10);
+      ctext('TORCH ON', 1);
+      softBar2('', 'Off');
     },
     key(k) { if (k) back(); }
   },
@@ -1060,25 +1089,29 @@ const SCR = {
   settings: {
     draw() {
       titleBar('Settings');
-      const items = [
-        { label: 'Scr: ' + THEMES[S.theme].name },
+      listView([
+        { label: 'Screen: ' + THEMES[S.theme].name },
+        { label: 'Carrier: ' + S.carrier },
         { label: 'Sound: ' + (S.sound ? 'On' : 'Off') },
         { label: 'Size: ' + SCALE + 'x' },
         { label: 'About' }
-      ];
-      listView(items, S.listIdx, 21, 4);
-      softBar('Change', 'Back');
+      ], S.listIdx, 23, 8);
+      softBar2('Change', 'Back');
     },
     key(k) {
-      const n = 4;
+      const n = 5;
       if (k === 'up')   { S.listIdx = (S.listIdx + n - 1) % n; beep(); }
       if (k === 'down') { S.listIdx = (S.listIdx + 1) % n; beep(); }
       if (k === 'ok' || k === 'soft1' || k === 'right') {
         blip();
         if (S.listIdx === 0) S.theme = (S.theme + 1) % THEMES.length;
-        if (S.listIdx === 1) S.sound = !S.sound;
-        if (S.listIdx === 2) { SCALE = SCALE >= 8 ? 4 : SCALE + 1; applyScale(); }
-        if (S.listIdx === 3) go('about');
+        if (S.listIdx === 1) {
+          const list = ['LOCAS', 'CHUNGHWA', 'DOCOMO', 'NTT', 'SOFTBANK'];
+          S.carrier = list[(list.indexOf(S.carrier) + 1) % list.length];
+        }
+        if (S.listIdx === 2) S.sound = !S.sound;
+        if (S.listIdx === 3) { SCALE = SCALE >= 5 ? 2 : SCALE + 1; applyScale(); }
+        if (S.listIdx === 4) go('about');
         save();
       }
       if (k === 'soft2' || k === 'clear') back();
@@ -1089,10 +1122,10 @@ const SCR = {
   about: {
     draw() {
       titleBar('About');
-      ctext('Nokia 1280', 24);
-      ctext('Web Launcher', 34);
-      ctext('96x68 mono', 46);
-      softBar('', 'Back');
+      ctext('Nokia 1280', 32, 2);
+      ctext('Web Launcher', 56);
+      ctext('128x112 mono', 70);
+      softBar2('', 'Back');
     },
     key(k) { if (k) back(); }
   },
@@ -1102,16 +1135,14 @@ const SCR = {
     draw() {
       const t = Date.now() - S.boot;
       if (t < 1200) {
-        ctext('NOKIA', 26, 2);
+        ctext('NOKIA', 44, 2);
       } else {
-        ctext('NOKIA', 12, 2);
-        // 握手動畫：兩隻手慢慢靠攏
+        ctext('NOKIA', 26, 2);
         const p = Math.min(1, (t - 1200) / 700);
-        const gap = Math.round((1 - p) * 16);
-        rect(26 - gap, 32, 20, 3);
-        rect(50 + gap, 32, 20, 3);
-        ctext('Connecting', 44);
-        ctext('People', 54);
+        const gap = Math.round((1 - p) * 20);
+        rect(38 - gap, 56, 26, 3);
+        rect(64 + gap, 56, 26, 3);
+        ctext('Connecting People', 74);
       }
       if (t > 2400) { S.scr = 'idle'; S.stack.length = 0; }
     },
@@ -1129,15 +1160,13 @@ function doCall(who) {
  * 9. 電源 / 輸入 / 主迴圈
  * ========================================================================= */
 function powerOn() {
-  S.power = true; S.boot = Date.now(); S.scr = 'bootscr'; S.stack.length = 0;
-  S.dial = '';
+  S.power = true; S.boot = Date.now(); S.scr = 'bootscr'; S.stack.length = 0; S.dial = '';
   playTune();
 }
 function powerOff() {
   S.power = false; S.scr = 'idle'; S.stack.length = 0; S.dial = '';
   tone(520, .1); tone(392, .16, .12);
 }
-
 function press(k) {
   if (!S.power) { powerOn(); return; }
   if (S.scr === 'bootscr') return;
@@ -1145,7 +1174,6 @@ function press(k) {
   if (scr && scr.key) scr.key(k);
 }
 
-/* 長按紅鍵關機 */
 let endHold = null;
 function keyDown(k) {
   if (k === 'end' && S.power) {
@@ -1155,51 +1183,45 @@ function keyDown(k) {
   press(k);
 }
 function keyUp(k) {
-  if (k === 'end') {
-    if (endHold) { clearTimeout(endHold); endHold = null; press('end'); }
-  }
+  if (k === 'end' && endHold) { clearTimeout(endHold); endHold = null; press('end'); }
 }
 
-/* --- 螢幕上的按鍵 --- */
-document.querySelectorAll('.key').forEach(btn => {
+document.querySelectorAll('[data-k]').forEach(btn => {
   const k = btn.dataset.k;
-  const down = e => { e.preventDefault(); btn.classList.add('down'); keyDown(k); };
-  const up   = e => { e.preventDefault(); btn.classList.remove('down'); keyUp(k); };
-  btn.addEventListener('pointerdown', down);
-  btn.addEventListener('pointerup', up);
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); btn.classList.add('down'); keyDown(k); });
+  btn.addEventListener('pointerup',   e => { e.preventDefault(); btn.classList.remove('down'); keyUp(k); });
   btn.addEventListener('pointerleave', () => btn.classList.remove('down'));
+  btn.addEventListener('contextmenu', e => e.preventDefault());
 });
 
-/* --- 實體鍵盤 --- */
 const KEYS = {
   ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right',
   Enter: 'ok', Backspace: 'clear', Escape: 'end',
   z: 'soft1', x: 'soft2', c: 'call', e: 'end'
 };
 const held = {};
+function btnFor(k) { return document.querySelector('[data-k="' + (k === 'clear' ? 'soft2' : k) + '"]'); }
 window.addEventListener('keydown', ev => {
-  let k = KEYS[ev.key] || (/^[0-9*#]$/.test(ev.key) ? ev.key : null);
+  const k = KEYS[ev.key] || (/^[0-9*#]$/.test(ev.key) ? ev.key : null);
   if (!k) return;
   ev.preventDefault();
   if (held[k]) return;
   held[k] = true;
-  const btn = document.querySelector('.key[data-k="' + (k === 'clear' ? 'soft2' : k) + '"]');
-  if (btn) btn.classList.add('down');
+  const b = btnFor(k); if (b) b.classList.add('down');
   keyDown(k);
 });
 window.addEventListener('keyup', ev => {
-  let k = KEYS[ev.key] || (/^[0-9*#]$/.test(ev.key) ? ev.key : null);
+  const k = KEYS[ev.key] || (/^[0-9*#]$/.test(ev.key) ? ev.key : null);
   if (!k) return;
   held[k] = false;
-  const btn = document.querySelector('.key[data-k="' + (k === 'clear' ? 'soft2' : k) + '"]');
-  if (btn) btn.classList.remove('down');
+  const b = btnFor(k); if (b) b.classList.remove('down');
   keyUp(k);
 });
 
-/* --- 設定保存 --- */
 function save() {
   try {
-    localStorage.setItem('n1280.cfg', JSON.stringify({ theme: S.theme, sound: S.sound, scale: SCALE }));
+    localStorage.setItem('n1280.cfg', JSON.stringify(
+      { theme: S.theme, sound: S.sound, scale: SCALE, carrier: S.carrier }));
   } catch (e) {}
 }
 function load() {
@@ -1207,21 +1229,20 @@ function load() {
     const c = JSON.parse(localStorage.getItem('n1280.cfg') || '{}');
     if (typeof c.theme === 'number') S.theme = c.theme % THEMES.length;
     if (typeof c.sound === 'boolean') S.sound = c.sound;
-    if (typeof c.scale === 'number') { SCALE = Math.min(8, Math.max(4, c.scale)); applyScale(); }
+    if (typeof c.carrier === 'string') S.carrier = c.carrier;
+    if (typeof c.scale === 'number') SCALE = Math.min(5, Math.max(2, c.scale));
   } catch (e) {}
 }
 
-/* --- 主迴圈 --- */
 let last = performance.now();
 function loop(now) {
   const dt = Math.min(120, now - last); last = now;
-
   if (S.scr === 'games') Snake.tick(dt);
 
   frame();
   if (!S.power) {
-    ctext('Press any key', 26);
-    ctext('to power on', 36);
+    ctext('Press any key', 46);
+    ctext('to power on', 58);
   } else {
     SCR[S.scr].draw(now);
     drawToast();
@@ -1231,6 +1252,7 @@ function loop(now) {
 }
 
 load();
+applyScale();
 requestAnimationFrame(loop);
 
 })();
